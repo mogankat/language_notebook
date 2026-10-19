@@ -955,5 +955,29 @@ render();renderKana();
 {let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}showTab(['kana','words','study'].includes(t)?t:'kana')}
 </script>
 <script type="module" src="cloud.js"></script>
+<script>
+// Layout diagnostics: open the site with ?debug to see what's wider than the screen (outlined in red)
+if(/[?&]debug\b/.test(location.search)){
+  const box=document.createElement('pre');
+  box.style.cssText='position:fixed;left:4px;right:4px;top:4px;z-index:99;max-height:45vh;overflow:auto;margin:0;padding:8px;font:11px/1.35 ui-monospace,monospace;white-space:pre-wrap;background:rgba(0,0,0,.85);color:#fff;border-radius:8px';
+  document.body.appendChild(box);
+  const report=()=>{
+    const W=document.documentElement.clientWidth,vv=window.visualViewport,rows=[];
+    document.querySelectorAll('body *').forEach(el=>{
+      if(el===box||box.contains(el))return;
+      const r=el.getBoundingClientRect();
+      if(!r.width||(r.right<=W+0.5&&r.left>=-0.5))return;
+      if([...el.children].some(c=>{const q=c.getBoundingClientRect();return q.width&&(q.right>W+0.5||q.left<-0.5)}))return; // report the innermost
+      el.style.outline='2px solid red';
+      const cls=String(el.className?.baseVal??el.className).trim().split(/\s+/)[0];
+      rows.push(`${el.tagName.toLowerCase()}${el.id?'#'+el.id:''}${cls?'.'+cls:''} x ${Math.round(r.left)}..${Math.round(r.right)} w ${Math.round(r.width)} "${(el.textContent||'').trim().slice(0,24)}"`);
+    });
+    box.textContent=`screen ${screen.width}  inner ${innerWidth}  layout ${W}  scrollW ${document.documentElement.scrollWidth}  body ${document.body.scrollWidth}\n`+
+      `visual ${vv?Math.round(vv.width)+' scale '+vv.scale.toFixed(2):'-'}  dpr ${devicePixelRatio}  font ${getComputedStyle(document.body).fontSize}\n${navigator.userAgent}\n\n`+
+      (rows.length?`${rows.length} element(s) wider than the layout:\n`+rows.slice(0,25).join('\n'):'Nothing is wider than the layout.');
+  };
+  setInterval(report,1500);setTimeout(report,300);
+}
+</script>
 </body>
 </html>
