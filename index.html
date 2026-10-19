@@ -326,6 +326,7 @@ dialog textarea[name="meaning"]{resize:vertical}
       <p class="hint dict-credit" id="dictCredit"></p>
     </section>
     <div class="foot">
+      <button class="btn" onclick="openStarter()" id="starterBtn">Add starter phrases</button>
       <button class="btn" onclick="openBulk()">Bulk add from notebook</button>
       <button class="btn" onclick="exportData()">Export backup</button>
       <button class="btn" onclick="document.getElementById('importFile').click()">Import backup</button>
@@ -419,9 +420,23 @@ dialog textarea[name="meaning"]{resize:vertical}
     <p class="hint">A language project comes with its dictionary, letters and audio. A blank project is for anything else: your own terms and definitions, e.g. for a university course.</p>
     <div class="type-list proj-types" id="projTypes"></div>
     <label>Name<input name="name" required maxlength="60" placeholder="e.g. Japanese, or Biology 201"></label>
+    <label class="check" id="projStarterWrap"><input type="checkbox" name="starter" checked> Add starter phrases: greetings, how are you, directions and shopping</label>
     <div class="actions">
       <button type="button" class="btn" id="projCancel" onclick="dProject.close()">Cancel</button>
       <button class="btn primary" value="save">Create project</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Starter phrases dialog -->
+<dialog id="dStarter">
+  <form method="dialog" id="fStarter">
+    <h2>Add starter phrases</h2>
+    <p class="hint">Common phrases for travel and everyday conversation. Each topic becomes a tag, so you can study it on its own. Phrases already in this project are skipped.</p>
+    <div class="type-list" id="starterTopics"></div>
+    <div class="actions">
+      <button type="button" class="btn" onclick="dStarter.close()">Cancel</button>
+      <button class="btn primary" value="save">Add phrases</button>
     </div>
   </form>
 </dialog>
@@ -492,6 +507,7 @@ dialog textarea[name="meaning"]{resize:vertical}
 
 <script src="firebase-config.js"></script>
 <script src="languages.js"></script>
+<script src="phrases.js"></script>
 <script src="write.js"></script>
 <script>
 /* ---------- storage ---------- */
@@ -588,7 +604,7 @@ function render(){
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
   if(!words.length){
-    $('list').innerHTML=`<div class="empty"><p>This project is empty.</p>${L.dict?'<p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p>':''}<button class="btn primary" onclick="openEdit()">Add your first ${L.blank?'term':'word'}</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
+    $('list').innerHTML=`<div class="empty"><p>This project is empty.</p>${L.dict?'<p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p>':''}<button class="btn primary" onclick="openEdit()">Add your first ${L.blank?'term':'word'}</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button>${L.blank?'<button class="btn" onclick="addSamples()">Load a few samples</button>':'<button class="btn" onclick="openStarter()">Add starter phrases</button>'}</div>`;
     return;
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
@@ -854,6 +870,7 @@ function kanaIn(list){
   return[...seen];
 }
 function skillsFor(kind,w){
+  if(kind==='word'&&/…/.test(w.jp))return study.skills.has('read')?['read']:[]; // templates like "Où est … ?" can't be typed or said exactly
   const hasText=kind==='kana'||(L.handwriting?writableChars(w.jp).length:w.jp.trim().length);
   return [...study.skills].filter(s=>s==='read'||(s==='write'&&hasText&&(kind!=='kana'||L.handwriting))||(s==='speak'&&kind==='word'&&canSpeak&&hasText));
 }
@@ -1118,7 +1135,7 @@ function refreshAll(){render();renderKana();if(!$('study').hidden&&!$('studySetu
 window.app={
   getWord:id=>words.find(w=>w.id===id),
   getChar:ch=>chars[ch],
-  setWords(list){words=list;refreshAll()},
+  setWords(list){words=list;refreshAll();if(signedInUser)maybeAddStarter()},
   setChars(c){chars=c;refreshAll()},
   localData:()=>({words:load(KEY_WORDS,[]),chars:load(KEY_CHARS,{})}),
   lang:LANG,project:PROJECT.id,
@@ -1177,11 +1194,12 @@ function openNewProject(){
   const f=$('fProject');f.reset();
   $('projTypes').innerHTML=[...LANG_ORDER,'blank'].map((t,i)=>`<label class="type-opt"><input type="radio" name="type" value="${t}"${i?'':' checked'}>
     <span><b>${t==='blank'?'Blank':`${LANGS[t].native} · ${LANGS[t].name}`}</b><small>${t==='blank'?'Your own terms and definitions, with flashcards. No dictionary.':`Built-in dictionary of ${LANGS[t].dictSize} words, ${LANGS[t].lettersTab.toLowerCase()} and audio.`}</small></span></label>`).join('');
-  f.name.value=LANGS.ja.name;
+  f.name.value=LANGS.ja.name;$('projStarterWrap').hidden=false;
   $('projCancel').hidden=!(PROJECTS||[]).length; // the first project can't be skipped
   $('dProject').showModal();
 }
 $('projTypes').addEventListener('change',e=>{
+  $('projStarterWrap').hidden=e.target.value==='blank';
   const f=$('fProject'),t=e.target.value,names=[...LANG_ORDER.map(c=>LANGS[c].name),'Blank',''];
   if(names.includes(f.name.value.trim()))f.name.value=t==='blank'?'':LANGS[t].name; // suggest a name until one is typed
   if(t==='blank')f.name.focus();
@@ -1190,6 +1208,7 @@ $('fProject').addEventListener('submit',async e=>{
   if(e.submitter?.value!=='save')return;
   const f=e.target,type=f.type.value,name=f.name.value.trim()||typeLabel(type);
   const p={id:'p'+uid(),type,name,created:Date.now()};
+  if(type!=='blank'&&f.starter.checked)try{localStorage.setItem('jn.starter.'+p.id,'1')}catch{} // added once the project opens
   // don't wait forever offline: the save is kept on this device and syncs later
   await Promise.race([saveProjects([...(PROJECTS||[]),p]),new Promise(r=>setTimeout(r,1500))]);
   switchProject(p);
@@ -1210,6 +1229,34 @@ async function deleteProject(){
   await saveProjects(rest);
   try{localStorage.removeItem('jn.current')}catch{}
   if(rest.length)switchProject(rest[0]);else{closeDrawer();document.body.dataset.state='welcome';words=[];chars={};refreshAll()}
+}
+
+/* ---------- starter phrases (phrases.js) ---------- */
+function openStarter(){
+  const have=new Set(words.map(w=>w.jp+'|'+w.meaning));
+  $('starterTopics').innerHTML=STARTER.map(t=>{
+    const all=starterWords(LANG,[t.tag]),fresh=all.filter(w=>!have.has(w.jp+'|'+w.meaning)).length;
+    const examples=all.slice(0,3).map(w=>w.meaning).join(', ');
+    return `<label class="type-opt"><input type="checkbox" value="${esc(t.tag)}"${fresh?' checked':' disabled'}><span><b>${esc(t.tag)}</b><small>${fresh?`${fresh} phrase${fresh===1?'':'s'}`:'Already added'} · ${esc(examples)}…</small></span></label>`;
+  }).join('');
+  $('dStarter').showModal();
+}
+function addStarter(tags){
+  const n=mergeData({words:starterWords(LANG,tags)}); // skips any already in the project
+  const t=$('toast');t.innerHTML=`Added ${n} starter phrase${n===1?'':'s'}. Tap a tag above to see one topic, or study them on the Study tab. <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;
+  showTab('words');
+}
+$('fStarter').addEventListener('submit',e=>{
+  if(e.submitter?.value!=='save')return;
+  const tags=[...$('starterTopics').querySelectorAll('input:checked')].map(i=>i.value);
+  if(tags.length)addStarter(tags);
+});
+// A new language project asked for starter phrases: add them once its (empty) notebook is loaded
+let starterChecked=false;
+function maybeAddStarter(){
+  if(starterChecked||L.blank)return;starterChecked=true;
+  let want=false;try{want=localStorage.getItem('jn.starter.'+PROJECT.id)==='1';localStorage.removeItem('jn.starter.'+PROJECT.id)}catch{}
+  if(want)addStarter(STARTER.map(t=>t.tag));
 }
 
 /* ---------- profile sidebar ---------- */
@@ -1300,6 +1347,8 @@ if(!CLOUD){
   if(PROJECTS.length&&!PROJECTS.some(p=>p.id===PROJECT.id))switchProject(PROJECTS[0]);
 }
 document.body.dataset.state=CLOUD?'loading':PROJECTS.length?'in':'welcome';
+$('starterBtn').hidden=!!L.blank;
+if(!CLOUD&&PROJECTS.length)setTimeout(maybeAddStarter,0);
 
 render();renderKana();
 {let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}if(!L.lettersTab&&t==='kana')t='words';showTab(['kana','words','study'].includes(t)?t:'kana')}
