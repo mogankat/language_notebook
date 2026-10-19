@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Japanese Notebook</title>
+<style>
+:root{--bg:#faf8f5;--panel:#fff;--ink:#1f1d1a;--muted:#6b665e;--line:#e6e1d8;--accent:#c0392b;--accent-ink:#fff;--learning:#f6dc8e;--known:#9fd3a8;--chip:#f1ede6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}}
+:root[data-theme="dark"]{--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px;flex-wrap:wrap}
+h1{font-size:22px;margin:0;letter-spacing:.01em}
+h1 span{color:var(--accent)}
+.tabs{display:flex;gap:4px;background:var(--chip);padding:4px;border-radius:10px}
+.tabs button{border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:7px;font:inherit;font-size:14px;cursor:pointer}
+.tabs button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.bar{position:sticky;top:0;background:var(--bg);padding:8px 0 12px;z-index:5}
+.search{display:flex;gap:8px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.search input{font-size:17px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger{color:var(--accent)}
+.btn:hover{filter:brightness(.97)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.row select{width:auto;padding:6px 9px;font-size:14px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:2px 10px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+.list{display:grid;gap:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+.card:hover{border-color:var(--muted)}
+.jp{font-size:22px;font-weight:500}
+.reading{color:var(--muted);font-size:14px}
+.meaning{grid-column:1/-1}
+.notes{grid-column:1/-1;color:var(--muted);font-size:14px;white-space:pre-wrap}
+.tags{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tags .chip{cursor:default;font-size:12px}
+.type{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);align-self:start;padding-top:6px}
+.empty{text-align:center;color:var(--muted);padding:48px 16px}
+.empty .btn{margin:6px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);padding:0;width:min(520px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+dialog form{padding:18px;display:grid;gap:10px}
+dialog h2{margin:0 0 4px;font-size:18px}
+label{font-size:13px;color:var(--muted);display:grid;gap:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.actions .left{margin-right:auto}
+.hint{font-size:13px;color:var(--muted);margin:0}
+code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:13px}
+/* kana */
+.kana-head{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.progress{font-size:14px;color:var(--muted)}
+.legend{display:flex;gap:10px;font-size:13px;color:var(--muted);align-items:center}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;margin-right:4px}
+.section-title{font-size:14px;color:var(--muted);margin:18px 0 6px;font-weight:600}
+.grid{display:grid;gap:6px}
+.grid.g5{grid-template-columns:repeat(5,1fr)}
+.grid.g3{grid-template-columns:repeat(3,1fr)}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;text-align:center;cursor:pointer;font:inherit;color:var(--ink)}
+.k b{display:block;font-size:26px;font-weight:500;line-height:1.2}
+.k small{color:var(--muted);font-size:12px}
+.k.learning{background:var(--learning)}
+.k.known{background:var(--known)}
+.k.blank{visibility:hidden}
+.bigchar{font-size:72px;text-align:center;line-height:1.1;display:block;margin:0 auto;background:none;border:0;color:var(--ink);font-family:inherit;cursor:pointer}
+.say{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;width:30px;height:30px;padding:0;font-size:14px;cursor:pointer;vertical-align:4px;margin-left:6px;line-height:1}
+.say:hover{border-color:var(--muted)}
+.mini div{cursor:pointer}
+.seg{display:flex;gap:6px}
+.seg .btn{flex:1}
+.seg .btn.on{outline:2px solid var(--accent)}
+.mini{max-height:220px;overflow:auto;display:grid;gap:4px}
+.mini div{font-size:15px;border-bottom:1px solid var(--line);padding:4px 0}
+.mini span{color:var(--muted)}
+.foot{margin-top:28px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.foot .btn{font-size:13px;padding:6px 12px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.2);z-index:50}
+#toast .btn{float:right;margin:6px 0 0 8px;padding:4px 12px}
+/* accounts & sync */
+body[data-state="loading"] #main,body[data-state="loading"] header .tabs,body[data-state="loading"] #acctBtn,
+body[data-state="out"] #main,body[data-state="out"] header .tabs,body[data-state="out"] #acctBtn,body[data-mode="local"] #acctBtn{display:none}
+body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{display:none}
+.head-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#acctBtn{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;padding:0}
+#acctBtn i{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bg);background:var(--muted)}
+#acctBtn[data-sync="synced"] i{background:#3fa35a}
+#acctBtn[data-sync="saving"] i{background:#d9a227}
+.signin-card{max-width:400px;margin:24px auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:12px}
+.signin-card h2{margin:0;font-size:20px}
+.signin-card form{display:grid;gap:8px}
+.or{text-align:center;color:var(--muted);font-size:13px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;justify-self:start;padding:0}
+#authMsg{margin:0;font-size:14px}
+#authMsg.err{color:var(--accent)}
+#loading{text-align:center;color:var(--muted);padding:60px 0}
+@media (hover:none){.kbd-hint{display:none}}
+/* study */
+.study-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px;margin-bottom:8px}
+.progbar{height:4px;background:var(--chip);border-radius:2px;overflow:hidden}
+.progbar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.flash{background:var(--panel);border:1px solid var(--line);border-radius:16px;min-height:280px;padding:28px 20px;margin:14px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;cursor:pointer;user-select:none}
+.f-jp{font-size:52px;line-height:1.2}
+.f-en{font-size:30px}
+.f-read{color:var(--muted);font-size:18px}
+.f-notes{color:var(--muted);font-size:14px;white-space:pre-wrap;max-width:420px}
+.flash hr{width:50%;border:0;border-top:1px solid var(--line);margin:10px 0}
+.flash .hint{margin-top:14px}
+.btn.big{font-size:16px;padding:12px 18px}
+.btn.again{background:var(--learning);border-color:transparent}
+.btn.good{background:var(--known);border-color:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink);margin-top:16px}
+.check input{width:auto}
+.done-score{font-size:48px;font-weight:600;text-align:center;margin-top:24px}
+@media (max-width:520px){.f-jp{font-size:40px}.f-en{font-size:24px}}
+@media (max-width:520px){.two{grid-template-columns:1fr}.k b{font-size:22px}.jp{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>日本語 <span>Notebook</span></h1>
+    <div class="head-right">
+      <div class="tabs" role="tablist">
+        <button id="tabKana" onclick="showTab('kana')">Characters</button>
+        <button id="tabWords" onclick="showTab('words')">Words</button>
+        <button id="tabStudy" onclick="showTab('study')">Study</button>
+      </div>
+      <button id="acctBtn" onclick="$('dAcct').showModal()" title="Account"><span id="acctInitial"></span><i></i></button>
+    </div>
+  </header>
+
+  <div id="loading">Loading your notebook…</div>
+
+  <section id="signin">
+    <div class="signin-card">
+      <h2>Sign in to your notebook</h2>
+      <p class="hint">Each person has their own dictionary, notes and progress, synced across your Mac, iPhone and iPad.</p>
+      <button type="button" class="btn primary big" onclick="app.onGoogle?.()">Continue with Google</button>
+      <div class="or">or use email</div>
+      <form id="emailForm">
+        <input type="email" name="email" placeholder="Email" autocomplete="username" required>
+        <input type="password" name="pw" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required>
+        <div class="seg"><button class="btn primary" value="in">Sign in</button><button class="btn" value="up">Create account</button></div>
+        <button type="button" class="linkbtn" onclick="app.onForgot?.($('emailForm').email.value.trim())">Forgot password?</button>
+      </form>
+      <p id="authMsg"></p>
+    </div>
+  </section>
+
+  <main id="main">
+
+  <!-- WORDS -->
+  <section id="words">
+    <div class="bar">
+      <div class="search">
+        <input id="q" type="search" placeholder="Search: English, kana, kanji, or romaji (neko → ねこ)" autocomplete="off">
+        <button class="btn primary" onclick="openEdit()">+ Add</button>
+      </div>
+      <div class="row">
+        <select id="fType"><option value="">All types</option><option value="word">Words</option><option value="phrase">Phrases</option><option value="grammar">Grammar</option></select>
+        <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="jp">あいうえお order</option><option value="en">English A–Z</option></select>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="row" id="tagChips"></div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="foot">
+      <button class="btn" onclick="openBulk()">Bulk add from notebook</button>
+      <button class="btn" onclick="exportData()">Export backup</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">Import backup</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </section>
+
+  <!-- STUDY -->
+  <section id="study" hidden>
+    <div id="studySetup">
+      <div class="section-title">Cards to study <span style="font-weight:400">· pick All or one or more tags</span></div>
+      <div class="row" id="studyTags" style="margin-top:0"></div>
+      <div class="section-title">Show first</div>
+      <div class="seg" id="studyDir">
+        <button type="button" class="btn" data-dir="jp">Japanese</button>
+        <button type="button" class="btn" data-dir="en">English</button>
+        <button type="button" class="btn" data-dir="mix">Mixed</button>
+      </div>
+      <label class="check"><input type="checkbox" id="studyAudio"> Play Japanese audio automatically</label>
+      <button class="btn primary big" id="studyStart" style="width:100%;margin-top:20px"></button>
+    </div>
+    <div id="studyRun" hidden>
+      <div class="study-top"><span id="studyProg"></span><button class="btn" onclick="endStudy()">End</button></div>
+      <div class="progbar"><i id="studyBar"></i></div>
+      <div class="flash" id="flash"></div>
+      <div class="seg" id="studyBtns"></div>
+      <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space to flip · ← Again · → Got it</p>
+    </div>
+    <div id="studyDone" hidden>
+      <div class="done-score" id="studyScore"></div>
+      <p class="hint" style="text-align:center">right on the first try</p>
+      <div class="seg" style="margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary big" id="studyRetry"></button>
+        <button class="btn big" id="studyAgain">Start over</button>
+        <button class="btn big" onclick="endStudy()">Change cards</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- KANA -->
+  <section id="kana" hidden>
+    <div class="kana-head">
+      <div class="tabs">
+        <button id="sHira" class="on" onclick="setScript('hira')">Hiragana</button>
+        <button id="sKata" onclick="setScript('kata')">Katakana</button>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="legend"><span><i class="sw"></i>New</span><span><i class="sw" style="background:var(--learning)"></i>Learning</span><span><i class="sw" style="background:var(--known)"></i>Known</span><span>· tap a character for details</span></div>
+    <div id="kanaGrids"></div>
+  </section>
+  </main>
+</div>
+
+<div id="toast" hidden></div>
+
+<!-- Account dialog -->
+<dialog id="dAcct">
+  <form method="dialog">
+    <h2 id="acctName"></h2>
+    <p class="hint" id="acctEmail"></p>
+    <p class="hint" id="acctSync"></p>
+    <div class="actions">
+      <button type="button" class="btn danger left" onclick="dAcct.close();app.onSignOut?.()">Sign out</button>
+      <button class="btn">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Edit dialog -->
+<dialog id="dEdit">
+  <form method="dialog" id="fEdit">
+    <h2 id="editTitle">Add entry</h2>
+    <label>Japanese *<input name="jp" required placeholder="猫 / ねこ / おはようございます" lang="ja"></label>
+    <div class="two">
+      <label>Reading (kana or romaji)<input name="reading" placeholder="ねこ · neko" lang="ja"></label>
+      <label>Type<select name="type"><option value="word">Word</option><option value="phrase">Phrase</option><option value="grammar">Grammar</option></select></label>
+    </div>
+    <label>Meaning *<input name="meaning" required placeholder="cat"></label>
+    <label>Tags (comma separated)<input name="tags" placeholder="Unit 2, animals" list="tagList"></label>
+    <label>Notes<textarea name="notes" rows="2" placeholder="Example sentence, memory trick…"></textarea></label>
+    <div class="actions">
+      <button type="button" class="btn danger left" id="btnDelete" onclick="deleteEntry()">Delete</button>
+      <button type="button" class="btn" onclick="dEdit.close()">Cancel</button>
+      <button class="btn primary" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+<datalist id="tagList"></datalist>
+
+<!-- Bulk dialog -->
+<dialog id="dBulk">
+  <form method="dialog" id="fBulk">
+    <h2>Bulk add</h2>
+    <p class="hint">One entry per line, fields separated by <code>|</code>:<br>
+      <code>japanese | meaning</code> or <code>japanese | reading | meaning</code> or <code>japanese | reading | meaning | tags</code></p>
+    <textarea name="text" rows="8" lang="ja" placeholder="水 | みず | water&#10;こんにちは | hello&#10;ありがとう | arigatou | thank you | Unit 1"></textarea>
+    <label>Tag all of these with (optional)<input name="tag" placeholder="Unit 3" list="tagList"></label>
+    <div class="actions">
+      <button type="button" class="btn" onclick="dBulk.close()">Cancel</button>
+      <button class="btn primary" value="save">Add entries</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Character dialog -->
+<dialog id="dChar">
+  <form method="dialog">
+    <button type="button" class="bigchar" id="cChar" lang="ja" title="Play pronunciation"></button>
+    <p class="hint" style="text-align:center;font-size:16px;margin-top:-4px" id="cRomaji"></p>
+    <div style="text-align:center"><button type="button" class="btn" id="cPlay">🔊 Play sound</button></div>
+    <div class="seg" id="cStatus"></div>
+    <div class="section-title" id="cWordsTitle"></div>
+    <div class="mini" id="cWords"></div>
+    <div class="actions">
+      <button type="button" class="btn left" id="cSearch">Search words</button>
+      <button class="btn">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="firebase-config.js"></script>
+<script>
+/* ---------- storage ---------- */
+const KEY_WORDS='jn.words', KEY_CHARS='jn.chars';
+function load(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}}
+// CLOUD: firebase-config.js has a config, so data comes from the signed-in account (cloud.js).
+// Otherwise everything is stored in this browser only.
+const CLOUD=!!window.FIREBASE_CONFIG;
+// change = {words:[ids added/edited], deleted:[ids], chars:[characters changed]}
+function persist(change={}){
+  if(CLOUD){window.cloud?.push(change);return}
+  try{localStorage.setItem(KEY_WORDS,JSON.stringify(words));localStorage.setItem(KEY_CHARS,JSON.stringify(chars))}catch{}
+}
+let words=CLOUD?[]:load(KEY_WORDS,[]), chars=CLOUD?{}:load(KEY_CHARS,{});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------- kana helpers ---------- */
+const toHira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const toKata=s=>s.replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60));
+const norm=s=>toHira(String(s||'').normalize('NFKC').toLowerCase());
+
+const R={a:'あ',i:'い',u:'う',e:'え',o:'お',ka:'か',ki:'き',ku:'く',ke:'け',ko:'こ',
+sa:'さ',shi:'し',si:'し',su:'す',se:'せ',so:'そ',ta:'た',chi:'ち',ti:'ち',tsu:'つ',tu:'つ',te:'て',to:'と',
+na:'な',ni:'に',nu:'ぬ',ne:'ね',no:'の',ha:'は',hi:'ひ',fu:'ふ',hu:'ふ',he:'へ',ho:'ほ',
+ma:'ま',mi:'み',mu:'む',me:'め',mo:'も',ya:'や',yu:'ゆ',yo:'よ',ra:'ら',ri:'り',ru:'る',re:'れ',ro:'ろ',
+wa:'わ',wo:'を',nn:'ん',ga:'が',gi:'ぎ',gu:'ぐ',ge:'げ',go:'ご',za:'ざ',ji:'じ',zi:'じ',zu:'ず',ze:'ぜ',zo:'ぞ',
+da:'だ',di:'ぢ',du:'づ',de:'で',do:'ど',ba:'ば',bi:'び',bu:'ぶ',be:'べ',bo:'ぼ',pa:'ぱ',pi:'ぴ',pu:'ぷ',pe:'ぺ',po:'ぽ',
+va:'ゔぁ',vi:'ゔぃ',vu:'ゔ',ve:'ゔぇ',vo:'ゔぉ',fa:'ふぁ',fi:'ふぃ',fe:'ふぇ',fo:'ふぉ','-':'ー'};
+{const Y={k:'き',n:'に',h:'ひ',m:'み',r:'り',g:'ぎ',b:'び',p:'ぴ',sy:'し',ty:'ち',zy:'じ',jy:'じ'};
+ for(const[c,b]of Object.entries(Y)){const p=c.length>1?c:c+'y';R[p+'a']=b+'ゃ';R[p+'u']=b+'ゅ';R[p+'o']=b+'ょ'}
+ for(const[p,b]of[['sh','し'],['ch','ち'],['j','じ']]){R[p+'a']=b+'ゃ';R[p+'u']=b+'ゅ';R[p+'o']=b+'ょ'}
+ R.she='しぇ';R.che='ちぇ';R.je='じぇ'}
+const VOWEL={};for(const[r,k]of Object.entries(R)){const last=[...k].pop();if(/[aiueo]$/.test(r)&&!VOWEL[last])VOWEL[last]=r.slice(-1)}
+function toKana(s){
+  let out='',i=0;
+  while(i<s.length){
+    const c=s[i],n=s[i+1];
+    if(c===n&&/[bcdfghjkmpqrstvwxyz]/.test(c)){out+='っ';i++;continue}
+    if(c==='n'&&n==='n'){out+='ん';i+=/[aiueoy]/.test(s[i+2]||'')?1:2;continue}
+    if(c==='n'&&(n===undefined||!/[aiueoy]/.test(n))){out+='ん';i++;continue}
+    let hit=false;
+    for(const L of[3,2,1]){const seg=s.substr(i,L);if(R[seg]){out+=R[seg];i+=L;hit=true;break}}
+    if(!hit){out+=c;i++}
+  }
+  return out;
+}
+
+/* ---------- words view ---------- */
+let activeTags=new Set(), editingId=null;
+function allTags(){const s=new Set();words.forEach(w=>(w.tags||[]).forEach(t=>s.add(t)));return[...s].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))}
+function matcher(q){
+  q=q.trim(); if(!q) return()=>true;
+  const nq=norm(q);
+  let kq='';
+  if(/^[a-z' \-]+$/i.test(q)){kq=toKana(q.toLowerCase().replace(/[' ]/g,'')).replace(/[a-z]+$/,'');if(!/[ぁ-ゖー]/.test(kq))kq=''}
+  // Loose kana form: long vowels written as ー or doubled (koohii ↔ コーヒー), particle は/へ spelled wa/e
+  const loose=s=>{let o='',pv='';for(const ch of s.replace(/は/g,'わ').replace(/へ/g,'え')){
+    const v=VOWEL[ch];
+    if(ch==='ー'||(pv&&'あいうえお'.includes(ch)&&(v===pv||(pv==='o'&&ch==='う')||(pv==='e'&&ch==='い'))))continue;
+    o+=ch;pv=v||''}return o};
+  const lq=kq&&loose(kq);
+  return w=>{const h=norm([w.jp,w.reading,w.meaning,(w.tags||[]).join(' '),w.notes].join(' \u0001 '));return h.includes(nq)||(kq&&(h.includes(kq)||loose(h).includes(lq)))};
+}
+function render(){
+  const tags=allTags();
+  activeTags.forEach(t=>{if(!tags.includes(t))activeTags.delete(t)});
+  $('tagChips').innerHTML=tags.map(t=>`<button class="chip ${activeTags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+  $('tagChips').style.display=tags.length?'':'none';
+  $('tagList').innerHTML=tags.map(t=>`<option value="${esc(t)}">`).join('');
+  const m=matcher($('q').value), type=$('fType').value, sort=$('fSort').value;
+  let rows=words.filter(w=>(!type||w.type===type)&&[...activeTags].every(t=>(w.tags||[]).includes(t))&&m(w));
+  const cmp={new:(a,b)=>b.added-a.added,old:(a,b)=>a.added-b.added,
+    jp:(a,b)=>norm(a.reading||a.jp).localeCompare(norm(b.reading||b.jp),'ja'),
+    en:(a,b)=>a.meaning.localeCompare(b.meaning)}[sort];
+  rows.sort(cmp);
+  $('count').textContent=`${rows.length} of ${words.length}`;
+  if(!words.length){
+    $('list').innerHTML=`<div class="empty"><p>Your notebook is empty.</p><button class="btn primary" onclick="openEdit()">Add your first word</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
+    return;
+  }
+  $('list').innerHTML=rows.length?rows.map(w=>`
+    <div class="card" data-id="${w.id}">
+      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">🔊</button></div>
+      <span class="type">${esc(w.type)}</span>
+      <div class="meaning">${esc(w.meaning)}</div>
+      ${w.notes?`<div class="notes">${esc(w.notes)}</div>`:''}
+      ${(w.tags||[]).length?`<div class="tags">${w.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`:''}
+    </div>`).join(''):`<div class="empty">No matches.</div>`;
+}
+$('q').addEventListener('input',render);
+$('fType').addEventListener('change',render);
+$('fSort').addEventListener('change',render);
+$('tagChips').addEventListener('click',e=>{const t=e.target.dataset.tag;if(t==null)return;activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()});
+$('list').addEventListener('click',e=>{
+  const s=e.target.closest('[data-say]');if(s){sayWord(words.find(w=>w.id===s.dataset.say));return}
+  const c=e.target.closest('.card');if(c)openEdit(c.dataset.id)});
+
+const parseTags=s=>[...new Set(String(s||'').split(',').map(t=>t.trim()).filter(Boolean))];
+function openEdit(id){
+  editingId=id||null;
+  const w=words.find(x=>x.id===id)||{type:'word'}, f=$('fEdit');
+  f.jp.value=w.jp||'';f.reading.value=w.reading||'';f.meaning.value=w.meaning||'';
+  f.type.value=w.type||'word';f.tags.value=(w.tags||[]).join(', ');f.notes.value=w.notes||'';
+  if(!id&&activeTags.size)f.tags.value=[...activeTags].join(', ');
+  $('editTitle').textContent=id?'Edit entry':'Add entry';
+  $('btnDelete').style.display=id?'':'none';
+  $('dEdit').showModal();f.jp.focus();
+}
+$('fEdit').addEventListener('submit',e=>{
+  if(e.submitter?.value!=='save')return;
+  const f=e.target, data={jp:f.jp.value.trim(),reading:f.reading.value.trim(),meaning:f.meaning.value.trim(),type:f.type.value,tags:parseTags(f.tags.value),notes:f.notes.value.trim()};
+  // "ごはん | gohan" typed into the Japanese field: split off the reading (bulk-add habit)
+  const parts=data.jp.split(/\s*[|｜]\s*/);
+  if(parts.length>1&&parts[0]){data.jp=parts[0];if(!data.reading)data.reading=parts.slice(1).join(' ').trim()}
+  let id=editingId;
+  if(id)Object.assign(words.find(w=>w.id===id),data);
+  else{id=uid();words.push({id,added:Date.now(),...data})}
+  persist({words:[id]});render();
+});
+function deleteEntry(){
+  const w=words.find(x=>x.id===editingId);
+  if(w&&confirm(`Delete “${w.jp}”?`)){const id=editingId;words=words.filter(x=>x.id!==id);persist({deleted:[id]});render();$('dEdit').close()}
+}
+
+function openBulk(){$('fBulk').reset();$('dBulk').showModal()}
+$('fBulk').addEventListener('submit',e=>{
+  if(e.submitter?.value!=='save')return;
+  const extra=parseTags(e.target.tag.value);let n=0,t=Date.now();const ids=[];
+  for(const line of e.target.text.value.split('\n')){
+    const p=line.split(/\s*[|\t]\s*/).map(s=>s.trim());
+    if(!p[0]||p.length<2)continue;
+    let jp,reading='',meaning,tags=[];
+    if(p.length===2)[jp,meaning]=p;else[jp,reading,meaning,tags]=[p[0],p[1],p[2],parseTags(p[3])];
+    if(!meaning)continue;
+    const id=uid();ids.push(id);
+    words.push({id,added:t+n,jp,reading,meaning,type:/[\s。、！？!?]/.test(jp)||jp.length>8?'phrase':'word',tags:[...new Set([...tags,...extra])],notes:''});n++;
+  }
+  persist({words:ids});render();
+  if(n)setTimeout(()=>alert(`Added ${n} entr${n===1?'y':'ies'}.`),50);
+});
+
+function addSamples(){
+  const s=[['猫','ねこ','cat','word','animals'],['水','みず','water','word','Unit 1'],['おはようございます','ohayou gozaimasu','good morning','phrase','greetings'],
+    ['ありがとう','arigatou','thank you','phrase','greetings'],['コーヒー','こーひー','coffee','word','food'],['ごはん','gohan','rice; meal','word','food'],['〜はどこですか','~ wa doko desu ka','where is ~?','grammar','Unit 2']];
+  const t=Date.now();
+  const ids=s.map(([jp,reading,meaning,type,tag],i)=>{const id=uid();words.push({id,added:t+i,jp,reading,meaning,type,tags:[tag],notes:''});return id});
+  persist({words:ids});render();
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify({app:'japanese-notebook',version:1,exported:new Date().toISOString(),words,chars},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`japanese-notebook-${new Date().toISOString().slice(0,10)}.json`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$('importFile').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const n=mergeData(JSON.parse(await file.text()));
+    alert(`Imported ${n} new entr${n===1?'y':'ies'}.`);
+  }catch{alert('That file could not be read as a notebook backup.')}
+  e.target.value='';
+});
+
+// Add words/characters from a backup (or this browser's pre-sign-in data), skipping duplicates
+function mergeData(d){
+  const ids=new Set(words.map(w=>w.id)),seen=new Set(words.map(w=>w.jp+'|'+w.meaning)),added=[];
+  for(const w of d.words||[]){
+    if(!w.jp||ids.has(w.id)||seen.has(w.jp+'|'+w.meaning))continue;
+    const nw={type:'word',tags:[],reading:'',notes:'',...w,id:w.id||uid(),added:w.added||Date.now()};
+    words.push(nw);ids.add(nw.id);seen.add(nw.jp+'|'+nw.meaning);added.push(nw.id);
+  }
+  const newChars=Object.keys(d.chars||{}).filter(ch=>!chars[ch]);
+  newChars.forEach(ch=>chars[ch]=d.chars[ch]);
+  persist({words:added,chars:newChars});render();renderKana();
+  return added.length;
+}
+
+/* ---------- characters view ---------- */
+const parseRows=src=>src.split('|').map(r=>r.split(' ').map(c=>{if(c==='_')return null;const m=c.match(/^([^\x00-\x7f]+)(.*)$/);return{k:m[1],r:m[2]}}));
+const SETS=[
+ ['Basic',5,parseRows('あa いi うu えe おo|かka きki くku けke こko|さsa しshi すsu せse そso|たta ちchi つtsu てte とto|なna にni ぬnu ねne のno|はha ひhi ふfu へhe ほho|まma みmi むmu めme もmo|やya _ ゆyu _ よyo|らra りri るru れre ろro|わwa _ _ _ をwo|んn _ _ _ _')],
+ ['Dakuten ゛ and handakuten ゜',5,parseRows('がga ぎgi ぐgu げge ごgo|ざza じji ずzu ぜze ぞzo|だda ぢji づzu でde どdo|ばba びbi ぶbu べbe ぼbo|ぱpa ぴpi ぷpu ぺpe ぽpo')],
+ ['Combinations',3,parseRows('きゃkya きゅkyu きょkyo|しゃsha しゅshu しょsho|ちゃcha ちゅchu ちょcho|にゃnya にゅnyu にょnyo|ひゃhya ひゅhyu ひょhyo|みゃmya みゅmyu みょmyo|りゃrya りゅryu りょryo|ぎゃgya ぎゅgyu ぎょgyo|じゃja じゅju じょjo|びゃbya びゅbyu びょbyo|ぴゃpya ぴゅpyu ぴょpyo')]
+];
+let script='hira';
+const conv=k=>script==='kata'?toKata(k):k;
+function setScript(s){script=s;$('sHira').classList.toggle('on',s==='hira');$('sKata').classList.toggle('on',s==='kata');renderKana()}
+function renderKana(){
+  let known=0,learning=0,total=0;
+  $('kanaGrids').innerHTML=SETS.map(([title,cols,rows])=>`<div class="section-title">${title}</div><div class="grid g${cols}">`+
+    rows.flat().map(c=>{
+      if(!c)return'<span class="k blank"></span>';
+      const ch=conv(c.k),st=chars[ch]||'new';
+      if(title==='Basic'){total++;if(st==='known')known++;if(st==='learning')learning++}
+      return`<button class="k ${st}" data-ch="${ch}" data-r="${c.r}"><b lang="ja">${ch}</b><small>${c.r}</small></button>`;
+    }).join('')+'</div>').join('');
+  $('progress').textContent=`Basic: ${known}/${total} known · ${learning} learning`;
+}
+$('kanaGrids').addEventListener('click',e=>{const b=e.target.closest('.k');if(b&&b.dataset.ch)openChar(b.dataset.ch,b.dataset.r)});
+function openChar(ch,r){
+  $('cChar').textContent=ch;$('cRomaji').textContent=r;$('cChar').onclick=$('cPlay').onclick=()=>sayKana(ch);
+  const draw=()=>{$('cStatus').innerHTML=['new','learning','known'].map(s=>`<button type="button" class="btn ${(chars[ch]||'new')===s?'on':''}" data-s="${s}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')};
+  draw();
+  $('cStatus').onclick=e=>{const s=e.target.dataset.s;if(!s)return;if(s==='new')delete chars[ch];else chars[ch]=s;persist({chars:[ch]});draw();renderKana()};
+  const hits=words.filter(w=>(w.jp+' '+w.reading).includes(ch));
+  $('cWordsTitle').textContent=hits.length?`In your notebook (${hits.length})`:'Not in any of your words yet';
+  $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div lang="ja" data-id="${w.id}" title="Play pronunciation">🔊 ${esc(w.jp)} <span>— ${esc(w.meaning)}</span></div>`).join('');
+  $('cWords').onclick=e=>{const d=e.target.closest('[data-id]');if(d)sayWord(words.find(w=>w.id===d.dataset.id))};
+  $('cSearch').onclick=()=>{$('dChar').close();$('q').value=ch;showTab('words');render()};
+  $('dChar').showModal();sayKana(ch);
+}
+
+/* ---------- pronunciation (uses the browser's built-in Japanese voice) ---------- */
+let jaVoice=null;
+function pickVoice(){const v=speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));jaVoice=v.find(v=>/kyoko|otoya|hattori|o-ren/i.test(v.name))||v.find(v=>v.localService)||v[0]||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function speak(text){
+  text=String(text||'').replace(/[〜~]/g,'').trim();
+  if(!text)return;
+  if(!('speechSynthesis' in window)){alert('This browser cannot play speech.');return}
+  if(!jaVoice)pickVoice();
+  const go=()=>{
+    const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';if(jaVoice)u.voice=jaVoice;u.rate=.85;
+    let started=false;u.onstart=()=>{started=true};
+    u.onerror=e=>{if(!/interrupted|canceled/.test(e.error))soundHelp()};
+    lastUtterance=u; // keep a reference: Chrome can drop speech whose utterance gets garbage-collected
+    speechSynthesis.resume(); // Chrome sometimes gets stuck "paused"
+    speechSynthesis.speak(u);
+    clearTimeout(speakWatch);speakWatch=setTimeout(()=>{if(!started)soundHelp()},3000);
+  };
+  // Speaking right after cancel() gets swallowed in Safari and Chrome, so wait a moment
+  if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,80)}else go();
+}
+let lastUtterance=null,speakWatch=0,helpShown=false;
+function soundHelp(){
+  if(helpShown)return;helpShown=true;
+  // Say what the browser reports, so the cause is visible (e.g. Firefox privacy settings hide all voices)
+  const all=speechSynthesis.getVoices(), ja=all.filter(v=>/^ja/i.test(v.lang));
+  const ff=/firefox/i.test(navigator.userAgent);
+  let why;
+  if(!all.length)why=`This browser reports <b>no speech voices at all</b>.${ff?' In Firefox this usually means a privacy setting is hiding them: see the fix below.':''}`;
+  else if(!ja.length)why=`This browser has ${all.length} voices but <b>no Japanese voice</b>. Install one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → Japanese → Kyoko, then restart the browser.`;
+  else why=`A Japanese voice (${esc(jaVoice?.name||ja[0].name)}) is available, but <b>the browser didn’t start speaking</b>. Try fully quitting the browser (⌘Q) and reopening it.`;
+  const fix=ff&&!ja.length?`<br><br><b>Firefox fix:</b> type <code>about:config</code> in the address bar, accept the warning, then check that <code>media.webspeech.synth.enabled</code> is <b>true</b> and <code>privacy.resistFingerprinting</code> is <b>false</b>. Then quit Firefox (⌘Q) and reopen it.`:'';
+  const t=$('toast');t.innerHTML=`<b>Word audio didn’t play.</b> ${why}${fix} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;
+}
+// Characters play recorded files from audio/kana (made by make-kana-audio.py); falls back to speech
+const KANA_FILE={};SETS.forEach(([,,rows])=>rows.flat().forEach(c=>{if(c)KANA_FILE[c.k]=c.r}));
+let kanaAudio=null;
+function sayKana(ch){
+  const r=KANA_FILE[toHira(ch)];
+  if(!r)return speak(ch);
+  try{speechSynthesis.cancel()}catch{}
+  if(kanaAudio)kanaAudio.pause();
+  kanaAudio=new Audio(`audio/kana/${r}.m4a`);
+  kanaAudio.play().catch(()=>speak(ch));
+}
+// Prefer a kana reading (more reliable than kanji); romaji readings aren't speakable as Japanese.
+const sayWord=w=>w&&speak(/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
+
+/* ---------- study (flashcards) ---------- */
+const study={tags:new Set(),dir:'jp',audio:true,queue:[],missed:new Set(),done:0,total:0,cur:null,flipped:false,front:'jp'};
+try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){study.tags=new Set(p.tags||[]);study.dir=p.dir||'jp';study.audio=p.audio!==false}}catch{}
+const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],dir:study.dir,audio:study.audio}))}catch{}};
+// A word is in the deck if it has ANY of the selected tags (so "Unit 1" + "Unit 2" studies both)
+const deckWords=()=>study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function renderStudySetup(){
+  const tags=allTags();study.tags.forEach(t=>{if(!tags.includes(t))study.tags.delete(t)});
+  const cnt=t=>words.filter(w=>(w.tags||[]).includes(t)).length;
+  $('studyTags').innerHTML=`<button class="chip ${study.tags.size?'':'on'}" data-tag="">All (${words.length})</button>`+
+    tags.map(t=>`<button class="chip ${study.tags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)} (${cnt(t)})</button>`).join('');
+  $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
+  $('studyAudio').checked=study.audio;
+  const n=deckWords().length;
+  $('studyStart').textContent=n?`Start · ${n} card${n===1?'':'s'}`:'No cards yet: add some words first';
+  $('studyStart').disabled=!n;
+}
+$('studyTags').onclick=e=>{const t=e.target.dataset.tag;if(t==null)return;if(t==='')study.tags.clear();else study.tags.has(t)?study.tags.delete(t):study.tags.add(t);saveStudyPrefs();renderStudySetup()};
+$('studyDir').onclick=e=>{const d=e.target.dataset.dir;if(!d)return;study.dir=d;saveStudyPrefs();renderStudySetup()};
+$('studyAudio').onchange=e=>{study.audio=e.target.checked;saveStudyPrefs()};
+$('studyStart').onclick=()=>startStudy(deckWords());
+$('studyAgain').onclick=()=>startStudy(deckWords());
+$('studyRetry').onclick=()=>startStudy(words.filter(w=>study.missed.has(w.id)));
+
+function studyView(v){$('studySetup').hidden=v!=='setup';$('studyRun').hidden=v!=='run';$('studyDone').hidden=v!=='done'}
+function startStudy(list){
+  if(!list.length)return;
+  study.queue=shuffle(list.map(w=>w.id));study.total=list.length;study.missed=new Set();study.done=0;
+  studyView('run');nextCard();
+}
+function nextCard(){
+  while(study.queue.length&&!words.some(w=>w.id===study.queue[0]))study.queue.shift(); // skip deleted words
+  if(!study.queue.length)return finishStudy();
+  study.cur=words.find(w=>w.id===study.queue[0]);study.flipped=false;
+  study.front=study.dir==='mix'?(Math.random()<.5?'jp':'en'):study.dir;
+  drawCard();
+  if(study.front==='jp'&&study.audio)sayWord(study.cur);
+}
+function drawCard(){
+  const w=study.cur,jp=study.front==='jp';
+  const jpHtml=`<div class="f-jp" lang="ja">${esc(w.jp)}</div>`, enHtml=`<div class="f-en">${esc(w.meaning)}</div>`;
+  const read=w.reading?`<div class="f-read" lang="ja">${esc(w.reading)}</div>`:'';
+  const say=`<button type="button" class="say" data-say="1" title="Play pronunciation">🔊</button>`;
+  let h=jp?jpHtml+say:enHtml;
+  if(study.flipped)h+='<hr>'+(jp?read+enHtml:jpHtml+read+say)+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
+  else h+='<div class="hint">Tap or press Space to show the answer</div>';
+  $('flash').innerHTML=h;
+  $('studyBtns').innerHTML=study.flipped
+    ?'<button type="button" class="btn big again" data-a="0">← Again</button><button type="button" class="btn big good" data-a="1">Got it →</button>'
+    :'<button type="button" class="btn big" data-a="flip">Show answer</button>';
+  const left=study.queue.length;
+  $('studyProg').textContent=`${study.done} done · ${left} left`;
+  $('studyBar').style.width=`${100*study.done/(study.done+left)}%`;
+}
+function flip(){if(study.flipped)return;study.flipped=true;drawCard();if(study.front==='en'&&study.audio)sayWord(study.cur)}
+function answer(ok){
+  if(!study.flipped)return;
+  const id=study.queue.shift();
+  if(ok)study.done++;
+  else{study.missed.add(id);study.queue.splice(Math.min(3,study.queue.length),0,id)} // comes back a few cards later
+  nextCard();
+}
+$('flash').onclick=e=>{if(e.target.closest('[data-say]'))sayWord(study.cur);else flip()};
+$('studyBtns').onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(a==null)return;e.target.blur();a==='flip'?flip():answer(a==='1')};
+function finishStudy(){
+  const m=study.missed.size;
+  $('studyScore').textContent=`${study.total-m} / ${study.total}`;
+  $('studyRetry').hidden=!m;$('studyRetry').textContent=`Study the ${m} I missed`;
+  studyView('done');
+}
+function endStudy(){try{speechSynthesis.cancel()}catch{}renderStudySetup();studyView('setup')}
+
+/* ---------- tabs & shortcuts ---------- */
+function showTab(t){
+  for(const [id,tab] of [['words','tabWords'],['study','tabStudy'],['kana','tabKana']]){$(id).hidden=t!==id;$(tab).classList.toggle('on',t===id)}
+  if(t==='study'&&!$('studySetup').hidden)renderStudySetup();
+  try{localStorage.setItem('jn.tab',t)}catch{}
+}
+document.addEventListener('keydown',e=>{
+  if(document.querySelector('dialog[open]')||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  if(!$('studyRun').hidden&&!$('study').hidden){
+    if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();return}
+    if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);return}
+    if(e.key==='ArrowRight'||e.key==='2'){e.preventDefault();answer(true);return}
+  }
+  if(e.key==='/'){e.preventDefault();showTab('words');$('q').focus()}
+  if(e.key==='n'){e.preventDefault();openEdit()}
+});
+
+/* ---------- accounts (used by cloud.js) ---------- */
+const SYNC_TEXT={synced:'✓ All changes synced',saving:'Saving changes…',offline:'Offline: changes are kept on this device and sync when you’re back online'};
+function refreshAll(){render();renderKana();if(!$('study').hidden&&!$('studySetup').hidden)renderStudySetup()}
+window.app={
+  getWord:id=>words.find(w=>w.id===id),
+  getChar:ch=>chars[ch],
+  setWords(list){words=list;refreshAll()},
+  setChars(c){chars=c;refreshAll()},
+  localData:()=>({words:load(KEY_WORDS,[]),chars:load(KEY_CHARS,{})}),
+  importLocal(d){const n=mergeData(d);setTimeout(()=>alert(`Copied ${n} word${n===1?'':'s'} into your account.`),50)},
+  signedIn(u){
+    document.body.dataset.state='in';
+    $('acctInitial').textContent=(u.name||'?').trim()[0].toUpperCase();
+    $('acctName').textContent=u.name;$('acctEmail').textContent=u.email&&u.email!==u.name?u.email:'';
+    $('authMsg').textContent='';
+  },
+  signedOut(){
+    document.body.dataset.state='out';
+    words=[];chars={};refreshAll();studyView('setup');
+    document.querySelectorAll('dialog[open]').forEach(d=>d.close());
+  },
+  setSync(state){$('acctBtn').dataset.sync=state;$('acctBtn').title=$('acctSync').textContent=SYNC_TEXT[state]},
+  authMessage(msg,isErr){
+    if(document.body.dataset.state==='in'){const t=$('toast');t.innerHTML=`${esc(msg)} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;return}
+    if(document.body.dataset.state==='loading')document.body.dataset.state='out';
+    $('authMsg').textContent=msg;$('authMsg').className=isErr?'err':'';
+  },
+};
+$('emailForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=e.target;$('authMsg').textContent='';
+  app.onEmail?.(e.submitter?.value==='up'?'up':'in',f.email.value.trim(),f.pw.value);
+});
+document.body.dataset.mode=CLOUD?'cloud':'local';
+document.body.dataset.state=CLOUD?'loading':'in';
+
+render();renderKana();
+{let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}showTab(['kana','words','study'].includes(t)?t:'kana')}
+</script>
+<script type="module" src="cloud.js"></script>
+</body>
+</html>
