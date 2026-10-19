@@ -74,7 +74,17 @@ allow read, write: if request.auth != null && request.auth.uid == uid
 ## Developer notes
 
 - `cloud.js` holds all sync code; `index.html` works without it (local-only mode).
-- `make-kana-audio.py` regenerates `audio/kana/` with the macOS Kyoko voice.
+- `languages.js` holds everything language-specific (Japanese, French, Korean, German): names, voices,
+  letter charts, Korean romanization and accent-free matching. The language is picked in the profile
+  sidebar; `?lang=fr` in the URL also works. Firestore keeps Japanese at `users/{uid}/words` and the
+  others at `users/{uid}/langs/{fr|ko|de}/…` (the existing rules already cover both).
+- `make-kana-audio.py` regenerates `audio/kana/` with the macOS Kyoko voice;
+  `make-letter-audio.py` regenerates `audio/fr|de|ko/` (Thomas, Anna, Yuna) from the table in `languages.js`.
+- `dict/fr.json`, `dict/de.json`, `dict/ko.json` come from Wiktionary (via kaikki.org) ranked by
+  FrequencyWords, both CC BY-SA 4.0. To rebuild one, download
+  `https://kaikki.org/dictionary/French/kaikki.org-dictionary-French.jsonl` (or German, Korean) and
+  `https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/fr/fr_50k.txt` (or de, ko), then run
+  `python3 build-dictionary-wiktionary.py fr kaikki.org-dictionary-French.jsonl fr_50k.txt`.
 - `dict/jmdict-common.json` is the dictionary searched on the Words tab (~22,600 common words from
   JMdict, © EDRDG, CC BY-SA 4.0). To update it, download `jmdict-eng-common-*.json.tgz` from
   <https://github.com/scriptin/jmdict-simplified/releases>, extract it, and run

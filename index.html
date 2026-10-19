@@ -67,6 +67,8 @@ code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:13px}
 .grid{display:grid;gap:6px}
 .grid.g5{grid-template-columns:repeat(5,1fr)}
 .grid.g3{grid-template-columns:repeat(3,1fr)}
+.grid.g4{grid-template-columns:repeat(4,1fr)}
+.grid.letters .k small{display:block;padding:0 4px;line-height:1.25}
 .k{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;text-align:center;cursor:pointer;font:inherit;color:var(--ink)}
 .k b{display:block;font-size:26px;font-weight:500;line-height:1.2}
 .k small{color:var(--muted);font-size:12px}
@@ -90,7 +92,7 @@ code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:13px}
 #toast .btn{float:right;margin:6px 0 0 8px;padding:4px 12px}
 /* accounts & sync */
 body[data-state="loading"] #main,body[data-state="loading"] header .tabs,body[data-state="loading"] #acctBtn,
-body[data-state="out"] #main,body[data-state="out"] header .tabs,body[data-state="out"] #acctBtn,body[data-mode="local"] #acctBtn{display:none}
+body[data-state="out"] #main,body[data-state="out"] header .tabs,body[data-state="out"] #acctBtn,body[data-state="out"] .lang-badge{display:none}
 body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{display:none}
 .head-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #acctBtn{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;padding:0}
@@ -154,6 +156,32 @@ dialog.wide form{padding:14px}
 .flash.compact .f-jp{font-size:40px}
 #studyPad{margin:12px 0}
 #studyPad .wp-box{width:max(200px,min(100%,calc(100vh - 430px),440px));width:max(200px,min(100%,calc(100dvh - 430px),440px))}
+/* language badge & profile sidebar */
+.lang-badge{border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:999px;font:inherit;font-size:13px;font-weight:500;padding:2px 10px;margin-left:4px;cursor:pointer;vertical-align:3px}
+#acctBtn{display:inline-flex;align-items:center;justify-content:center}
+#drawerBack{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;opacity:0;transition:opacity .2s}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(340px,88vw);background:var(--panel);border-left:1px solid var(--line);z-index:41;
+  padding:18px 16px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;transform:translateX(100%);transition:transform .2s}
+body.drawer-open #drawer{transform:none}
+body.drawer-open #drawerBack{opacity:1}
+.drawer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dr-name{font-size:18px;font-weight:600}
+#drawer .hint{margin:0}
+#langList{display:grid;gap:6px}
+.lang-opt{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 10px;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;cursor:pointer}
+.lang-opt.on{border-color:var(--accent);outline:1px solid var(--accent)}
+.lang-native{font-size:17px;font-weight:600}
+.lang-name{color:var(--muted);font-size:14px}
+.lang-count{color:var(--muted);font-size:12px}
+.drawer-foot{margin-top:auto;padding-top:16px}
+/* typing answers (French, German) */
+#studyType{margin:10px 0 0}
+#typeIn{font-size:20px;text-align:center}
+#typeIn.ok{border-color:#3fa35a;outline:1px solid #3fa35a}
+#typeIn.bad{border-color:var(--accent);outline:1px solid var(--accent)}
+.accent-keys{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 12px}
+.accent-keys .btn{min-width:40px;padding:6px 10px;font-size:17px}
+.grid.letters .k b{font-size:24px}
 /* dictionary */
 .search-hint{margin:8px 0 0;font-size:13px}
 #editDictHint{margin:-4px 0 2px;font-size:13px}
@@ -220,14 +248,14 @@ dialog.wide form{padding:14px}
 <body>
 <div class="wrap">
   <header>
-    <h1><span>Notebook</span></h1>
+    <h1><span>Notebook</span> <button type="button" class="lang-badge" id="langBadge" onclick="openDrawer()" title="Change language"></button></h1>
     <div class="head-right">
       <div class="tabs" role="tablist">
         <button id="tabKana" onclick="showTab('kana')">Characters</button>
         <button id="tabWords" onclick="showTab('words')">Words</button>
         <button id="tabStudy" onclick="showTab('study')">Study</button>
       </div>
-      <button id="acctBtn" onclick="$('dAcct').showModal()" title="Account"><span id="acctInitial"></span><i></i></button>
+      <button id="acctBtn" onclick="openDrawer()" title="Profile and languages" aria-label="Profile and languages"><span id="acctInitial"></span><i></i></button>
     </div>
   </header>
 
@@ -258,10 +286,10 @@ dialog.wide form{padding:14px}
         <input id="q" type="search" placeholder="Search your words and the dictionary" autocomplete="off">
         <button class="btn primary" onclick="openEdit()">+ Add</button>
       </div>
-      <p class="hint search-hint" id="searchHint">Tip: type a word here (English, romaji or Japanese) to look it up in the built-in dictionary of 22,000+ words, then tap <b>+ Add</b> on the one you want.</p>
+      <p class="hint search-hint" id="searchHint"></p>
       <div class="row">
         <select id="fType"><option value="">All types</option><option value="word">Words</option><option value="phrase">Phrases</option><option value="grammar">Grammar</option></select>
-        <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="jp">あいうえお order</option><option value="en">English A–Z</option></select>
+        <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="jp" id="sortLangOpt">A–Z</option><option value="en">English A–Z</option></select>
         <span class="count" id="count"></span>
       </div>
       <div class="row" id="tagChips"></div>
@@ -272,11 +300,11 @@ dialog.wide form{padding:14px}
         <div class="section-title">From the dictionary</div>
         <div class="dict-opts">
           <label class="dict-tag">Tag words I add <input id="dictTag" placeholder="e.g. Section 1 Unit 2" list="tagList" autocomplete="off"></label>
-          <label class="dict-tag">Write as <select id="dictSpell"><option value="usual">Usual spelling (寿司)</option><option value="kana">Kana only (すし)</option></select></label>
+          <label class="dict-tag" id="dictSpellWrap">Write as <select id="dictSpell"><option value="usual">Usual spelling (寿司)</option><option value="kana">Kana only (すし)</option></select></label>
         </div>
       </div>
       <div class="list" id="dictList"></div>
-      <p class="hint dict-credit">Dictionary: <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a>, © <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noopener">EDRDG</a>, used under CC BY-SA 4.0.</p>
+      <p class="hint dict-credit" id="dictCredit"></p>
     </section>
     <div class="foot">
       <button class="btn" onclick="openBulk()">Bulk add from notebook</button>
@@ -291,29 +319,33 @@ dialog.wide form{padding:14px}
     <div id="studySetup">
       <div class="section-title">Cards to study <span style="font-weight:400">· pick All or one or more tags</span></div>
       <div class="row" id="studyTags" style="margin-top:0"></div>
-      <label class="check"><input type="checkbox" id="studyKana"> Also include the kana used in these words</label>
+      <label class="check"><input type="checkbox" id="studyKana"> <span id="studyKanaLabel">Also include the kana used in these words</span></label>
       <div class="section-title">Practise</div>
       <div class="type-list" id="studyTypes">
         <label class="type-opt"><input type="checkbox" value="read"><span><b>Reading</b><small>See it, recall it, then mark yourself.</small></span></label>
-        <label class="type-opt"><input type="checkbox" value="write"><span><b>Writing</b><small>Write it by hand. Your strokes are checked automatically.</small></span></label>
+        <label class="type-opt"><input type="checkbox" value="write"><span><b>Writing</b><small id="writeNote">Write it by hand. Your strokes are checked automatically.</small></span></label>
         <label class="type-opt" id="speakOpt"><input type="checkbox" value="speak"><span><b>Speaking</b><small id="speakNote"></small></span></label>
       </div>
       <p class="hint" style="margin-top:8px">Each card uses one of the ticked skills, picked at random.</p>
       <div id="studyDirWrap">
       <div class="section-title">Reading cards show first</div>
       <div class="seg" id="studyDir">
-        <button type="button" class="btn" data-dir="jp">Japanese</button>
+        <button type="button" class="btn" data-dir="jp" id="dirLangBtn">Japanese</button>
         <button type="button" class="btn" data-dir="en">English</button>
         <button type="button" class="btn" data-dir="mix">Mixed</button>
       </div>
       </div>
-      <label class="check"><input type="checkbox" id="studyAudio"> Play Japanese audio automatically</label>
+      <label class="check"><input type="checkbox" id="studyAudio"> <span id="studyAudioLabel">Play Japanese audio automatically</span></label>
       <button class="btn primary big" id="studyStart" style="width:100%;margin-top:20px"></button>
     </div>
     <div id="studyRun" hidden>
       <div class="study-top"><span id="studyProg"></span><button class="btn" onclick="endStudy()">End</button></div>
       <div class="progbar"><i id="studyBar"></i></div>
       <div class="flash" id="flash"></div>
+      <div id="studyType" hidden>
+        <input id="typeIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type it here">
+        <div class="accent-keys" id="accentKeys"></div>
+      </div>
       <div class="seg" id="studyBtns"></div>
       <div id="studyPad" hidden></div>
       <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space: show answer / check / speak / continue · ← Again · → Got it</p>
@@ -332,13 +364,13 @@ dialog.wide form{padding:14px}
   <!-- KANA -->
   <section id="kana" hidden>
     <div class="kana-head">
-      <div class="tabs">
+      <div class="tabs" id="scriptTabs">
         <button id="sHira" class="on" onclick="setScript('hira')">Hiragana</button>
         <button id="sKata" onclick="setScript('kata')">Katakana</button>
       </div>
       <span class="progress" id="progress"></span>
     </div>
-    <div class="legend"><span><i class="sw"></i>New</span><span><i class="sw" style="background:var(--learning)"></i>Learning</span><span><i class="sw" style="background:var(--known)"></i>Known</span><span>· tap a character for details</span></div>
+    <div class="legend"><span><i class="sw"></i>New</span><span><i class="sw" style="background:var(--learning)"></i>Learning</span><span><i class="sw" style="background:var(--known)"></i>Known</span><span id="legendTip">· tap a character for details</span></div>
     <div id="kanaGrids"></div>
   </section>
   </main>
@@ -346,18 +378,19 @@ dialog.wide form{padding:14px}
 
 <div id="toast" hidden></div>
 
-<!-- Account dialog -->
-<dialog id="dAcct">
-  <form method="dialog">
-    <h2 id="acctName"></h2>
-    <p class="hint" id="acctEmail"></p>
-    <p class="hint" id="acctSync"></p>
-    <div class="actions">
-      <button type="button" class="btn danger left" onclick="dAcct.close();app.onSignOut?.()">Sign out</button>
-      <button class="btn">Close</button>
-    </div>
-  </form>
-</dialog>
+<!-- Profile sidebar: account and language -->
+<div id="drawerBack" hidden onclick="closeDrawer()"></div>
+<aside id="drawer" hidden aria-label="Profile and languages">
+  <div class="drawer-top">
+    <div><div class="dr-name" id="drName"></div><div class="hint" id="drEmail"></div></div>
+    <button type="button" class="btn small" onclick="closeDrawer()">Close</button>
+  </div>
+  <p class="hint" id="drSync"></p>
+  <div class="section-title">Language</div>
+  <div id="langList"></div>
+  <p class="hint" style="margin-top:10px">Each language has its own words, tags and progress.</p>
+  <div class="drawer-foot"><button type="button" class="btn danger" id="drSignOut" onclick="closeDrawer();app.onSignOut?.()">Sign out</button></div>
+</aside>
 
 <!-- Writing practice dialog -->
 <dialog id="dWrite" class="wide">
@@ -375,9 +408,9 @@ dialog.wide form{padding:14px}
   <form method="dialog" id="fEdit">
     <h2 id="editTitle">Add entry</h2>
     <p class="hint" id="editDictHint">Don’t want to type it all? <button type="button" class="linkbtn" onclick="findInDictionary()">Find it in the dictionary</button></p>
-    <label>Japanese *<input name="jp" required placeholder="猫 / ねこ / おはようございます" lang="ja"></label>
+    <label><span id="fJpLabel">Japanese</span> *<input name="jp" required lang="ja"></label>
     <div class="two">
-      <label>Reading (kana or romaji)<input name="reading" placeholder="ねこ · neko" lang="ja"></label>
+      <label><span id="fReadLabel">Reading</span><input name="reading" lang="ja"></label>
       <label>Type<select name="type"><option value="word">Word</option><option value="phrase">Phrase</option><option value="grammar">Grammar</option></select></label>
     </div>
     <label>Meaning *<input name="meaning" required placeholder="cat"></label>
@@ -397,8 +430,8 @@ dialog.wide form{padding:14px}
   <form method="dialog" id="fBulk">
     <h2>Bulk add</h2>
     <p class="hint">One entry per line, fields separated by <code>|</code>:<br>
-      <code>japanese | meaning</code> or <code>japanese | reading | meaning</code> or <code>japanese | reading | meaning | tags</code></p>
-    <textarea name="text" rows="8" lang="ja" placeholder="水 | みず | water&#10;こんにちは | hello&#10;ありがとう | arigatou | thank you | Unit 1"></textarea>
+      <code>word | meaning</code> or <code>word | reading | meaning</code> or <code>word | reading | meaning | tags</code></p>
+    <textarea name="text" rows="8" lang="ja" id="bulkText"></textarea>
     <label>Tag all of these with (optional)<input name="tag" placeholder="Unit 3" list="tagList"></label>
     <div class="actions">
       <button type="button" class="btn" onclick="dBulk.close()">Cancel</button>
@@ -424,10 +457,11 @@ dialog.wide form{padding:14px}
 </dialog>
 
 <script src="firebase-config.js"></script>
+<script src="languages.js"></script>
 <script src="write.js"></script>
 <script>
 /* ---------- storage ---------- */
-const KEY_WORDS='jn.words', KEY_CHARS='jn.chars';
+const KEY_WORDS=lkey('words'), KEY_CHARS=lkey('chars'); // per language (Japanese keeps the original keys)
 function load(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}}
 // CLOUD: firebase-config.js has a config, so data comes from the signed-in account (cloud.js).
 // Otherwise everything is stored in this browser only.
@@ -485,6 +519,15 @@ function looseKana(s){let o='',pv='';for(const ch of s.replace(/は/g,'わ').rep
   o+=ch;pv=v||''}return o}
 function matcher(q){
   q=q.trim(); if(!q) return()=>true;
+  const text=w=>[w.jp,w.reading,w.meaning,(w.tags||[]).join(' '),w.notes].join(' \u0001 ');
+  if(LANG==='fr'||LANG==='de'){ // accents, case and umlaut spellings don't matter
+    const fq=fold(q),cq=collapseUmlauts(fq);
+    return w=>{const h=fold(text(w));return h.includes(fq)||collapseUmlauts(h).includes(cq)};
+  }
+  if(LANG==='ko'){ // Hangul, or romanization typed loosely (gamsahapnida, kamsahamnida…)
+    const lq=q.toLowerCase(),rq=/[a-z]/.test(lq)&&!/[\uac00-\ud7a3]/.test(lq)?looseRoman(lq):'';
+    return w=>{const h=text(w).toLowerCase();return h.includes(lq)||(rq&&looseRoman(romanizeKo(w.jp)+' '+(w.reading||'')).includes(rq))};
+  }
   const nq=norm(q);
   let kq='';
   if(/^[a-z' \-]+$/i.test(q)){kq=toKana(q.toLowerCase().replace(/[' ]/g,'')).replace(/[a-z]+$/,'');if(!/[ぁ-ゖー]/.test(kq))kq=''}
@@ -501,7 +544,7 @@ function render(){
   const m=matcher($('q').value), type=$('fType').value, sort=$('fSort').value;
   let rows=words.filter(w=>(!type||w.type===type)&&[...activeTags].every(t=>(w.tags||[]).includes(t))&&m(w));
   const cmp={new:(a,b)=>b.added-a.added,old:(a,b)=>a.added-b.added,
-    jp:(a,b)=>norm(a.reading||a.jp).localeCompare(norm(b.reading||b.jp),'ja'),
+    jp:LANG==='ja'?(a,b)=>norm(a.reading||a.jp).localeCompare(norm(b.reading||b.jp),'ja'):(a,b)=>stripArticle(a.jp).localeCompare(stripArticle(b.jp),LANG,{sensitivity:'base'}),
     en:(a,b)=>a.meaning.localeCompare(b.meaning)}[sort];
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
@@ -511,7 +554,7 @@ function render(){
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
     <div class="card" data-id="${w.id}">
-      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>${writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practise writing" aria-label="Practise writing">${ICON.pen}</button>`:''}</div>
+      <div><span class="jp" lang="${LANG}">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="${LANG}">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>${L.handwriting&&writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practise writing" aria-label="Practise writing">${ICON.pen}</button>`:''}</div>
       <span class="type">${esc(w.type)}</span>
       <div class="meaning">${esc(w.meaning)}</div>
       ${w.notes?`<div class="notes">${esc(w.notes)}</div>`:''}
@@ -582,22 +625,23 @@ $('fBulk').addEventListener('submit',e=>{
 });
 
 function addSamples(){
-  const s=[['猫','ねこ','cat','word','animals'],['水','みず','water','word','Unit 1'],['おはようございます','ohayou gozaimasu','good morning','phrase','greetings'],
-    ['ありがとう','arigatou','thank you','phrase','greetings'],['コーヒー','こーひー','coffee','word','food'],['ごはん','gohan','rice; meal','word','food'],['〜はどこですか','~ wa doko desu ka','where is ~?','grammar','Unit 2']];
+  const s=L.samples;
   const t=Date.now();
   const ids=s.map(([jp,reading,meaning,type,tag],i)=>{const id=uid();words.push({id,added:t+i,jp,reading,meaning,type,tags:[tag],notes:''});return id});
   persist({words:ids});render();
 }
 
 function exportData(){
-  const blob=new Blob([JSON.stringify({app:'japanese-notebook',version:1,exported:new Date().toISOString(),words,chars},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`japanese-notebook-${new Date().toISOString().slice(0,10)}.json`;a.click();
+  const blob=new Blob([JSON.stringify({app:'language-notebook',version:2,lang:LANG,exported:new Date().toISOString(),words,chars},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${L.name.toLowerCase()}-notebook-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 $('importFile').addEventListener('change',async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
-    const n=mergeData(JSON.parse(await file.text()));
+    const d=JSON.parse(await file.text()),from=LANGS[d.lang||'ja'];
+    if((d.lang||'ja')!==LANG&&!confirm(`This backup is from your ${from?.name||d.lang} notebook. Import it into ${L.name} anyway?`)){e.target.value='';return}
+    const n=mergeData(d);
     alert(`Imported ${n} new entr${n===1?'y':'ies'}.`);
   }catch{alert('That file could not be read as a notebook backup.')}
   e.target.value='';
@@ -627,7 +671,10 @@ const SETS=[
 let script='hira';
 const conv=k=>script==='kata'?toKata(k):k;
 function setScript(s){script=s;$('sHira').classList.toggle('on',s==='hira');$('sKata').classList.toggle('on',s==='kata');renderKana()}
+// Letters of the other languages (from languages.js), by letter
+const LETTER_INFO={};(LETTERS[LANG]||[]).forEach((g,gi)=>g.items.forEach(it=>{LETTER_INFO[it.k]={...it,special:gi===0}}));
 function renderKana(){
+  if(LANG!=='ja')return renderLetters();
   let known=0,learning=0,total=0;
   $('kanaGrids').innerHTML=SETS.map(([title,cols,rows])=>`<div class="section-title">${title}</div><div class="grid g${cols}">`+
     rows.flat().map(c=>{
@@ -638,24 +685,41 @@ function renderKana(){
     }).join('')+'</div>').join('');
   $('progress').textContent=`Basic: ${known}/${total} known · ${learning} learning`;
 }
+function renderLetters(){
+  let known=0,learning=0,total=0;
+  $('kanaGrids').innerHTML=(LETTERS[LANG]||[]).map(g=>`<div class="section-title">${g.title}</div><div class="grid g${g.cols} letters">`+
+    g.items.map(it=>{
+      const st=chars[it.k]||'new';total++;if(st==='known')known++;if(st==='learning')learning++;
+      return`<button class="k ${st}" data-ch="${esc(it.k)}" data-r="${esc(it.r)}"><b lang="${LANG}">${esc(it.k)}</b><small>${esc(it.r)}</small></button>`;
+    }).join('')+'</div>').join('');
+  $('progress').textContent=`${known}/${total} known · ${learning} learning`;
+}
 $('kanaGrids').addEventListener('click',e=>{const b=e.target.closest('.k');if(b&&b.dataset.ch)openChar(b.dataset.ch,b.dataset.r)});
+// Words in the notebook that use a letter (Korean letters live inside syllable blocks)
+function wordsWithLetter(ch){
+  if(LANG==='ko')return words.filter(w=>hangulJamo(w.jp).includes(ch));
+  if(LANG==='fr'||LANG==='de')return words.filter(w=>w.jp.toLowerCase().includes(ch));
+  return words.filter(w=>(w.jp+' '+w.reading).includes(ch));
+}
 function openChar(ch,r){
-  $('cChar').textContent=ch;$('cRomaji').textContent=r;$('cChar').onclick=$('cPlay').onclick=()=>sayKana(ch);
+  $('cChar').textContent=ch;$('cChar').lang=LANG;$('cRomaji').textContent=r;$('cChar').onclick=$('cPlay').onclick=()=>sayKana(ch);
+  $('cWrite').hidden=!L.handwriting;
   const draw=()=>{$('cStatus').innerHTML=['new','learning','known'].map(s=>`<button type="button" class="btn ${(chars[ch]||'new')===s?'on':''}" data-s="${s}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')};
   draw();
   $('cStatus').onclick=e=>{const s=e.target.dataset.s;if(!s)return;if(s==='new')delete chars[ch];else chars[ch]=s;persist({chars:[ch]});draw();renderKana()};
-  const hits=words.filter(w=>(w.jp+' '+w.reading).includes(ch));
+  const hits=wordsWithLetter(ch);
   $('cWordsTitle').textContent=hits.length?`In your notebook (${hits.length})`:'Not in any of your words yet';
-  $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div lang="ja" data-id="${w.id}" title="Play pronunciation">${ICON.speaker} ${esc(w.jp)} <span>— ${esc(w.meaning)}</span></div>`).join('');
+  $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div data-id="${w.id}" title="Play pronunciation">${ICON.speaker} <span lang="${LANG}">${esc(w.jp)}</span> <span>— ${esc(w.meaning)}</span></div>`).join('');
   $('cWords').onclick=e=>{const d=e.target.closest('[data-id]');if(d)sayWord(words.find(w=>w.id===d.dataset.id))};
   $('cWrite').onclick=()=>{$('dChar').close();writeChar(ch,r)};
   $('cSearch').onclick=()=>{$('dChar').close();$('q').value=ch;showTab('words');render()};
   $('dChar').showModal();sayKana(ch);
 }
 
-/* ---------- pronunciation (uses the browser's built-in Japanese voice) ---------- */
-let jaVoice=null;
-function pickVoice(){const v=speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));jaVoice=v.find(v=>/kyoko|otoya|hattori|o-ren/i.test(v.name))||v.find(v=>v.localService)||v[0]||null}
+/* ---------- pronunciation (uses the browser's built-in voice for the current language) ---------- */
+let jaVoice=null; // the voice for the current language (name kept from when this was Japanese-only)
+const langPrefix=new RegExp('^'+LANG,'i');
+function pickVoice(){const v=speechSynthesis.getVoices().filter(v=>langPrefix.test(v.lang));jaVoice=v.find(v=>L.voice.test(v.name))||v.find(v=>v.localService)||v[0]||null}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function speak(text){
   text=String(text||'').replace(/[〜~]/g,'').trim();
@@ -663,7 +727,7 @@ function speak(text){
   if(!('speechSynthesis' in window)){alert('This browser cannot play speech.');return}
   if(!jaVoice)pickVoice();
   const go=()=>{
-    const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';if(jaVoice)u.voice=jaVoice;u.rate=.85;
+    const u=new SpeechSynthesisUtterance(text);u.lang=L.tts;if(jaVoice)u.voice=jaVoice;u.rate=.85;
     let started=false;u.onstart=()=>{started=true};
     u.onerror=e=>{if(!/interrupted|canceled/.test(e.error))soundHelp()};
     lastUtterance=u; // keep a reference: Chrome can drop speech whose utterance gets garbage-collected
@@ -678,12 +742,12 @@ let lastUtterance=null,speakWatch=0,helpShown=false;
 function soundHelp(){
   if(helpShown)return;helpShown=true;
   // Say what the browser reports, so the cause is visible (e.g. Firefox privacy settings hide all voices)
-  const all=speechSynthesis.getVoices(), ja=all.filter(v=>/^ja/i.test(v.lang));
+  const all=speechSynthesis.getVoices(), ja=all.filter(v=>langPrefix.test(v.lang));
   const ff=/firefox/i.test(navigator.userAgent);
   let why;
   if(!all.length)why=`This browser reports <b>no speech voices at all</b>.${ff?' In Firefox this usually means a privacy setting is hiding them: see the fix below.':''}`;
-  else if(!ja.length)why=`This browser has ${all.length} voices but <b>no Japanese voice</b>. Install one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → Japanese → Kyoko, then restart the browser.`;
-  else why=`A Japanese voice (${esc(jaVoice?.name||ja[0].name)}) is available, but <b>the browser didn’t start speaking</b>. Try fully quitting the browser (⌘Q) and reopening it.`;
+  else if(!ja.length)why=`This browser has ${all.length} voices but <b>no ${L.name} voice</b>. Install one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → ${L.name} → ${L.voiceName}, then restart the browser.`;
+  else why=`A ${L.name} voice (${esc(jaVoice?.name||ja[0].name)}) is available, but <b>the browser didn’t start speaking</b>. Try fully quitting the browser (⌘Q) and reopening it.`;
   const fix=ff&&!ja.length?`<br><br><b>Firefox fix:</b> type <code>about:config</code> in the address bar, accept the warning, then check that <code>media.webspeech.synth.enabled</code> is <b>true</b> and <code>privacy.resistFingerprinting</code> is <b>false</b>. Then quit Firefox (⌘Q) and reopen it.`:'';
   const t=$('toast');t.innerHTML=`<b>Word audio didn’t play.</b> ${why}${fix} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;
 }
@@ -691,6 +755,14 @@ function soundHelp(){
 const KANA_FILE={};SETS.forEach(([,,rows])=>rows.flat().forEach(c=>{if(c)KANA_FILE[c.k]=c.r}));
 let kanaAudio=null;
 function sayKana(ch){
+  if(LANG!=='ja'){ // recorded letters in audio/<lang>/ (make-letter-audio.py), else the voice
+    const it=LETTER_INFO[ch];if(!it)return speak(ch);
+    try{speechSynthesis.cancel()}catch{}
+    if(kanaAudio)kanaAudio.pause();
+    kanaAudio=new Audio(`audio/${LANG}/${it.id}.m4a`);
+    kanaAudio.play().catch(()=>speak(it.say));
+    return;
+  }
   const r=KANA_FILE[toHira(ch)];
   if(!r)return speak(ch);
   try{speechSynthesis.cancel()}catch{}
@@ -699,7 +771,7 @@ function sayKana(ch){
   kanaAudio.play().catch(()=>speak(ch));
 }
 // Prefer a kana reading (more reliable than kanji); romaji readings aren't speakable as Japanese.
-const sayWord=w=>w&&speak(/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
+const sayWord=w=>w&&speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
 
 /* ---------- study (flashcards) ----------
    A card is a word, or a kana used in the chosen words, practised one way picked at random from the
@@ -711,21 +783,31 @@ const canSpeak=!!SpeechRec&&!isBrave;
 const SKILLS=['read','write','speak'];
 const study={tags:new Set(),skills:new Set(['read','write']),kana:true,dir:'jp',audio:true,
   queue:[],missed:new Set(),done:0,total:0,card:null,stage:'front',hint:false,pad:null,result:null,heard:'',listening:false,speakErr:null,note:'',rec:null};
-try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){
+try{const p=JSON.parse(localStorage.getItem(lkey('study')));if(p){
   study.tags=new Set(p.tags||[]);
   const sk=(p.skills||(p.mode==='write'?['write']:null)||[]).filter(x=>SKILLS.includes(x));if(sk.length)study.skills=new Set(sk);
   study.kana=p.kana!==false;study.dir=p.dir||'jp';study.audio=p.audio!==false}}catch{}
-const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],skills:[...study.skills],kana:study.kana,dir:study.dir,audio:study.audio}))}catch{}};
+const saveStudyPrefs=()=>{try{localStorage.setItem(lkey('study'),JSON.stringify({tags:[...study.tags],skills:[...study.skills],kana:study.kana,dir:study.dir,audio:study.audio}))}catch{}};
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.random()*a.length|0];
 // A word is chosen if it has ANY of the selected tags (so "Unit 1" + "Unit 2" studies both)
 const tagWords=()=>study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words;
-const kanaRomaji=ch=>KANA_FILE[toHira(ch)];
+const kanaRomaji=ch=>LANG==='ja'?KANA_FILE[toHira(ch)]:LETTER_INFO[ch]?.r;
 const isKatakana=ch=>/[\u30a1-\u30fa]/.test(ch);
 // Kana from the chosen words that are in the Characters charts (small ゃ, っ and ー are skipped)
-function kanaIn(list){const seen=new Set();for(const w of list)for(const c of (w.jp||'')+(w.reading||''))if(kanaRomaji(c))seen.add(c);return[...seen]}
+// Letter cards: kana (Japanese), Hangul letters (Korean) or special letters like é/ü (French, German)
+function kanaIn(list){
+  const seen=new Set();
+  for(const w of list){
+    if(LANG==='ja')for(const c of (w.jp||'')+(w.reading||'')){if(kanaRomaji(c))seen.add(c)}
+    else if(LANG==='ko')hangulJamo(w.jp).forEach(c=>{if(LETTER_INFO[c])seen.add(c)});
+    else for(const it of Object.values(LETTER_INFO))if(it.special&&w.jp.toLowerCase().includes(it.k))seen.add(it.k);
+  }
+  return[...seen];
+}
 function skillsFor(kind,w){
-  return [...study.skills].filter(s=>s==='read'||(s==='write'&&(kind==='kana'||writableChars(w.jp).length))||(s==='speak'&&kind==='word'&&canSpeak&&writableChars(w.jp).length));
+  const hasText=kind==='kana'||(L.handwriting?writableChars(w.jp).length:w.jp.trim().length);
+  return [...study.skills].filter(s=>s==='read'||(s==='write'&&hasText&&(kind!=='kana'||L.handwriting))||(s==='speak'&&kind==='word'&&canSpeak&&hasText));
 }
 function buildDeck(){
   const list=tagWords(),items=[];
@@ -749,7 +831,7 @@ function renderStudySetup(){
   $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
   $('studyAudio').checked=study.audio;
   const deck=buildDeck(),nk=deck.filter(c=>c.kind==='kana').length,nw=deck.length-nk;
-  $('studyStart').textContent=!study.skills.size?'Tick at least one skill':deck.length?`Start · ${deck.length} card${deck.length===1?'':'s'}`+(nk?` (${nw} word${nw===1?'':'s'}, ${nk} kana)`:''):'No cards yet: add some words first';
+  $('studyStart').textContent=!study.skills.size?'Tick at least one skill':deck.length?`Start · ${deck.length} card${deck.length===1?'':'s'}`+(nk?` (${nw} word${nw===1?'':'s'}, ${nk} letter${nk===1?'':'s'})`:''):'No cards yet: add some words first';
   $('studyStart').disabled=!deck.length;
 }
 $('studyTags').onclick=e=>{const t=e.target.dataset.tag;if(t==null)return;if(t==='')study.tags.clear();else study.tags.has(t)?study.tags.delete(t):study.tags.add(t);saveStudyPrefs();renderStudySetup()};
@@ -776,9 +858,10 @@ function nextCard(){
   const c=study.card=study.queue[0];
   Object.assign(study,{stage:'front',hint:false,result:null,heard:'',listening:false,speakErr:null,note:''});
   study.front=c.skill==='read'&&c.kind==='word'?(study.dir==='mix'?pick(['jp','en']):study.dir):null;
-  const writing=c.skill==='write';
-  $('studyPad').hidden=!writing;$('flash').classList.toggle('compact',c.skill!=='read');
-  if(writing){study.pad||=createPad($('studyPad'),{checkButton:false});study.pad.load(c.kind==='word'?curWord().jp:c.ch)}
+  const writing=c.skill==='write',typing=writing&&!L.handwriting;
+  $('studyPad').hidden=!writing||typing;$('studyType').hidden=!typing;$('flash').classList.toggle('compact',c.skill!=='read');
+  if(writing&&!typing){study.pad||=createPad($('studyPad'),{checkButton:false});study.pad.load(c.kind==='word'?curWord().jp:c.ch)}
+  if(typing){$('typeIn').value='';$('typeIn').disabled=false;$('typeIn').className='';setTimeout(()=>$('typeIn').focus({preventScroll:true}),50)}
   drawCard();
   // Audio when the card appears, unless hearing it would give the answer away
   if(study.audio&&(writing||study.front==='jp'))playCard();
@@ -786,8 +869,8 @@ function nextCard(){
 function drawCard(){
   const c=study.card,w=curWord(),back=study.stage==='back';
   const say=`<button type="button" class="say" data-say="1" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`;
-  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp" lang="ja">${esc(t)}</div>`, en=t=>`<div class="f-en">${esc(t)}</div>`;
-  const read=w?.reading?`<div class="f-read" lang="ja">${esc(w.reading)}</div>`:'';
+  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp" lang="${LANG}">${esc(t)}</div>`, en=t=>`<div class="f-en">${esc(t)}</div>`;
+  const read=w?.reading?`<div class="f-read" lang="${LANG}">${esc(w.reading)}</div>`:'';
   const notes=w?.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'';
   const line=x=>`<div class="f-row">${x}</div>`;
   const hintBtn=(text,shown)=>study.hint?shown:`<button type="button" class="btn small" data-hint="1">${text}</button>`;
@@ -797,27 +880,29 @@ function drawCard(){
     if(c.kind==='kana'){h=label('Reading · what sound is this?')+jpBig(c.ch);if(back)h+='<hr>'+en(kanaRomaji(c.ch))+say}
     else{
       const jp=study.front==='jp';
-      h=label(jp?'Reading · what does it mean?':'Reading · say or think the Japanese')+(jp?jpBig(w.jp)+say:en(w.meaning));
+      h=label(jp?'Reading · what does it mean?':`Reading · say or think the ${L.name}`)+(jp?jpBig(w.jp)+say:en(w.meaning));
       if(back)h+='<hr>'+(jp?read+en(w.meaning):jpBig(w.jp)+read+say)+notes;
     }
     if(!back)h+='<div class="hint">Tap or press Space to show the answer</div>';
   }
   if(c.skill==='write'){
-    if(c.kind==='kana')h=label(`Writing · write this ${isKatakana(c.ch)?'katakana':'hiragana'}`)+en(kanaRomaji(c.ch))+line(say);
-    else h=label('Writing · write it in Japanese')+en(w.meaning)+line(say+(w.reading&&!back?hintBtn('Show reading',read):''));
+    if(c.kind==='kana')h=label(`Writing · write this ${LANG==='ko'?'Hangul letter':isKatakana(c.ch)?'katakana':'hiragana'}`)+en(kanaRomaji(c.ch))+line(say);
+    else h=label(`Writing · ${L.handwriting?'write':'type'} it in ${L.name}`)+en(w.meaning)+line(say+(w.reading&&!back&&L.handwriting?hintBtn('Show reading',read):''));
     if(back){
       h+='<hr>'+(c.kind==='kana'?jpBig(c.ch):jpBig(w.jp)+read);
-      h+=study.result===true?verdict(true,'Correct'):study.result===false?verdict(false,study.gaveUp?'Here’s how it’s written':writableChars(c.kind==='kana'?c.ch:w.jp).length>1?'Not quite: tap a red box above the pad to see why':'Not quite: see the note under the pad'):'<div class="hint">Couldn’t check automatically. Compare with the red characters and mark it yourself.</div>';
+      if(!L.handwriting&&c.kind==='word'&&!study.gaveUp)h+=`<div class="hint">You typed: <span lang="${LANG}">${esc($('typeIn').value.trim()||'(nothing)')}</span></div>`;
+      h+=study.result===true?verdict(true,'Correct'):study.result===false?verdict(false,study.gaveUp?'Here’s how it’s written':study.typedNote||(writableChars(c.kind==='kana'?c.ch:w.jp).length>1?'Not quite: tap a red box above the pad to see why':'Not quite: see the note under the pad'))
+        :`<div class="hint">${LANG==='ko'?'Hangul writing can’t be checked automatically yet.':'Couldn’t check automatically.'} Compare with the red letters and mark it yourself.</div>`;
     }else if(study.note)h+=`<div class="hint">${study.note}</div>`;
   }
   if(c.skill==='speak'){
-    h=label('Speaking · say it in Japanese')+en(w.meaning);
-    if(!back)h+=line(hintBtn('Show the Japanese',jpBig(w.jp)+read));
+    h=label(`Speaking · say it in ${L.name}`)+en(w.meaning);
+    if(!back)h+=line(hintBtn(`Show the ${L.name}`,jpBig(w.jp)+read));
     if(study.listening)h+='<div class="listening">Listening… speak now</div>';
     if(study.speakErr)h+=`<div class="hint err">${study.speakErr}</div>`;
     if(back){
       h+='<hr>'+jpBig(w.jp)+read+say;
-      if(study.heard||study.gaveUp)h+=(study.heard?`<div class="hint">Heard: <span lang="ja">${esc(study.heard)}</span></div>`:'')+(study.lastOk?verdict(true,study.result?'Correct':'Correct this time. This card will come back.'):verdict(false,study.gaveUp?'Listen and repeat it':'Not a match'));
+      if(study.heard||study.gaveUp)h+=(study.heard?`<div class="hint">Heard: <span lang="${LANG}">${esc(study.heard)}</span></div>`:'')+(study.lastOk?verdict(true,study.result?'Correct':'Correct this time. This card will come back.'):verdict(false,study.gaveUp?'Listen and repeat it':'Not a match'));
     }
   }
   $('flash').innerHTML=h;
@@ -840,7 +925,26 @@ function drawCard(){
   $('studyBar').style.width=`${100*study.done/(study.done+left)}%`;
 }
 function reveal(){if(study.stage==='back')return;study.stage='back';drawCard();if(study.audio&&study.front!=='jp')playCard()}
+/* Typing (French, German): exact spelling with accents and the article; say what was off */
+function checkTyped(typed,answerText){
+  const clean=s=>String(s).normalize('NFC').replace(/[’`´]/g,"'").replace(/\s+/g,' ').trim();
+  const a=clean(typed),b=clean(answerText);
+  if(!a)return{ok:false,note:'Nothing typed'};
+  if(a===b||(LANG==='fr'&&a.toLowerCase()===b.toLowerCase()))return{ok:true};
+  if(LANG==='de'&&a.replace(/ß/g,'ss')===b.replace(/ß/g,'ss'))return{ok:true}; // Strasse for Straße is fine (Swiss spelling)
+  if(a.toLowerCase()===b.toLowerCase())return{ok:false,note:'Almost: check the capital letters (German nouns start with a capital)'};
+  if(fold(a)===fold(b))return{ok:false,note:'Almost: check the accents'+(LANG==='de'?' and umlauts':'')};
+  if(fold(stripArticle(a))===fold(stripArticle(b)))return{ok:false,note:b.match(ARTICLE)?`Check the article: it’s “${b.match(ARTICLE)[0].trim()}”`:'Leave out the article here'};
+  return{ok:false,note:'Not quite'};
+}
 async function checkWriting(){
+  if(!L.handwriting&&study.card.kind==='word'){
+    if(!$('typeIn').value.trim()){study.note='Type it in the box first, or tap “I don’t know”.';return drawCard()}
+    const r=checkTyped($('typeIn').value,curWord().jp);
+    study.result=r.ok;study.typedNote=r.note;study.stage='back';
+    $('typeIn').disabled=true;$('typeIn').className=r.ok?'ok':'bad';
+    drawCard();if(study.audio)playCard();return;
+  }
   if(study.pad.isEmpty()){study.note='Write it in the box first, or tap “I don’t know”.';return drawCard()}
   const r=await study.pad.check();
   study.result=r.ok;study.stage='back';drawCard();
@@ -848,15 +952,18 @@ async function checkWriting(){
 }
 function giveUp(){
   study.gaveUp=true;study.result=false;study.lastOk=false;study.stage='back';
-  if(study.card.skill==='write')study.pad.check(); // shows the correct characters over whatever was written
+  if(study.card.skill==='write'&&L.handwriting)study.pad.check(); // shows the correct characters over whatever was written
+  if(study.card.skill==='write'&&!L.handwriting)$('typeIn').disabled=true;
   drawCard();if(study.audio)playCard();
 }
 /* Speaking: compare what the recogniser heard with the word's Japanese, its reading, and any
    transcripts accepted before with "It was right" (e.g. 猫 for a word saved only as ねこ) */
-const speechForm=s=>looseKana(norm(s).replace(/[^\u3041-\u3096\u30fc\u3005\u3400-\u9fff]/g,''));
+const speechForm=s=>LANG==='ja'?looseKana(norm(s).replace(/[^\u3041-\u3096\u30fc\u3005\u3400-\u9fff]/g,''))
+  :LANG==='ko'?String(s).replace(/[^\uac00-\ud7a3]/g,'')
+  :fold(stripArticle(fold(s))).replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim(); // fr/de: articles and accents don't matter when heard
 function spokenMatches(said,w){
   said=speechForm(said);if(!said)return false;
-  const reading=/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:toKana(String(w.reading||'').toLowerCase().replace(/[^a-z-]/g,''));
+  const reading=LANG!=='ja'?'':/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:toKana(String(w.reading||'').toLowerCase().replace(/[^a-z-]/g,''));
   return [w.jp,reading,...(w.heard||[])].map(speechForm).filter(Boolean).some(f=>said===f||(f.length>1&&said.includes(f)));
 }
 const SPEECH_ERRORS={
@@ -870,7 +977,7 @@ function listen(){
   const w=curWord();
   try{speechSynthesis.cancel()}catch{}
   const r=study.rec=new SpeechRec();
-  r.lang='ja-JP';r.maxAlternatives=5;r.interimResults=false;r.continuous=false;
+  r.lang=L.tts;r.maxAlternatives=5;r.interimResults=false;r.continuous=false;
   let settled=false;
   const stopWith=fn=>{if(settled)return;settled=true;study.listening=false;fn();drawCard()};
   r.onresult=e=>stopWith(()=>{
@@ -904,6 +1011,7 @@ function primaryAction(){
 }
 function answer(ok){
   if(study.stage!=='back')return;
+  study.typedNote='';
   const it=study.queue.shift();
   if(ok)study.done++;
   else{study.missed.add(it);study.queue.splice(Math.min(3,study.queue.length),0,it)} // comes back a few cards later
@@ -920,13 +1028,20 @@ $('studyBtns').onclick=e=>{
   ({flip:reveal,check:checkWriting,giveup:giveUp,speak:listen,stop:()=>study.rec?.stop(),next:()=>answer(study.result===true),right:acceptAsRight,
     '0':()=>answer(false),'1':()=>answer(true)})[a]?.();
 };
+$('typeIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();primaryAction()}});
+$('accentKeys').addEventListener('click',e=>{
+  const k=e.target.closest('[data-k]')?.dataset.k;if(!k)return;
+  const t=$('typeIn');if(t.disabled)return;
+  const a=t.selectionStart??t.value.length,b=t.selectionEnd??a;
+  t.value=t.value.slice(0,a)+k+t.value.slice(b);t.focus();t.setSelectionRange(a+k.length,a+k.length);
+});
 function finishStudy(){
   const m=study.missed.size;
   $('studyScore').textContent=`${study.total-m} / ${study.total}`;
   $('studyRetry').hidden=!m;$('studyRetry').textContent=`Study the ${m} I missed`;
   studyView('done');
 }
-function endStudy(){try{speechSynthesis.cancel();study.rec?.abort()}catch{}$('studyPad').hidden=true;$('flash').classList.remove('compact');renderStudySetup();studyView('setup')}
+function endStudy(){try{speechSynthesis.cancel();study.rec?.abort()}catch{}$('studyPad').hidden=true;$('studyType').hidden=true;$('flash').classList.remove('compact');renderStudySetup();studyView('setup')}
 
 /* ---------- tabs & shortcuts ---------- */
 function showTab(t){
@@ -956,11 +1071,12 @@ window.app={
   setWords(list){words=list;refreshAll()},
   setChars(c){chars=c;refreshAll()},
   localData:()=>({words:load(KEY_WORDS,[]),chars:load(KEY_CHARS,{})}),
+  lang:LANG,
   importLocal(d){const n=mergeData(d);setTimeout(()=>alert(`Copied ${n} word${n===1?'':'s'} into your account.`),50)},
   signedIn(u){
     document.body.dataset.state='in';
     $('acctInitial').textContent=(u.name||'?').trim()[0].toUpperCase();
-    $('acctName').textContent=u.name;$('acctEmail').textContent=u.email&&u.email!==u.name?u.email:'';
+    $('drName').textContent=u.name;$('drEmail').textContent=u.email&&u.email!==u.name?u.email:'';
     $('authMsg').textContent='';
   },
   signedOut(){
@@ -968,13 +1084,67 @@ window.app={
     words=[];chars={};refreshAll();studyView('setup');
     document.querySelectorAll('dialog[open]').forEach(d=>d.close());
   },
-  setSync(state){$('acctBtn').dataset.sync=state;$('acctBtn').title=$('acctSync').textContent=SYNC_TEXT[state]},
+  setSync(state){$('acctBtn').dataset.sync=state;$('drSync').textContent=SYNC_TEXT[state]},
   authMessage(msg,isErr){
     if(document.body.dataset.state==='in'){const t=$('toast');t.innerHTML=`${esc(msg)} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;return}
     if(document.body.dataset.state==='loading')document.body.dataset.state='out';
     $('authMsg').textContent=msg;$('authMsg').className=isErr?'err':'';
   },
 };
+/* ---------- profile sidebar & language switch ---------- */
+let drawerTimer=0;
+function openDrawer(){
+  clearTimeout(drawerTimer); // a close that's still finishing must not hide it again
+  $('drawer').hidden=$('drawerBack').hidden=false;
+  void $('drawer').offsetWidth; // apply the closed position first so the slide-in animates
+  document.body.classList.add('drawer-open');
+  $('drSignOut').hidden=!CLOUD;
+  if(!CLOUD){$('drName').textContent='This device';$('drEmail').textContent='Saved in this browser only';}
+  renderLangList();
+  if(CLOUD)window.cloud?.counts?.().then(c=>c&&renderLangList(c)).catch(()=>{});
+}
+function closeDrawer(){document.body.classList.remove('drawer-open');clearTimeout(drawerTimer);drawerTimer=setTimeout(()=>{$('drawer').hidden=$('drawerBack').hidden=true},200)}
+function renderLangList(counts){
+  $('langList').innerHTML=LANG_ORDER.map(code=>{
+    const n=code===LANG?words.length:CLOUD?counts?.[code]:load(lkey('words',code),[]).length;
+    return `<button type="button" class="lang-opt${code===LANG?' on':''}" data-lang="${code}">
+      <span class="lang-native" lang="${code}">${LANGS[code].native}</span><span class="lang-name">${LANGS[code].name}</span>
+      <span class="lang-count">${n==null?'':`${n} word${n===1?'':'s'}`}</span></button>`;
+  }).join('');
+}
+$('langList').addEventListener('click',e=>{
+  const code=e.target.closest('[data-lang]')?.dataset.lang;
+  if(!code||code===LANG)return closeDrawer();
+  try{localStorage.setItem('jn.lang',code)}catch{}
+  location.replace(location.pathname); // reload in the new language (drops any ?lang=)
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('drawer').hidden)closeDrawer()});
+// Labels and examples for the current language
+function applyLanguage(){
+  document.title=`${L.name} Notebook`;
+  $('langBadge').textContent=L.native;$('langBadge').lang=LANG;
+  $('tabKana').textContent=L.lettersTab;
+  $('scriptTabs').hidden=LANG!=='ja';
+  $('legendTip').textContent=LANG==='ja'?'· tap a character for details':'· tap a letter for details';
+  $('searchHint').innerHTML=`Tip: type a word here (${L.searchHint}) to look it up in the built-in dictionary of ${L.dictSize} words, then tap <b>+ Add</b> on the one you want.`;
+  $('sortLangOpt').textContent=L.sortLabel;
+  $('dictCredit').innerHTML='Dictionary: '+L.dictCredit;
+  $('dictSpellWrap').hidden=LANG!=='ja';
+  $('fJpLabel').textContent=L.name;
+  const f=$('fEdit');f.jp.placeholder=L.wordPlaceholder;f.reading.placeholder=L.readingPlaceholder;f.jp.lang=f.reading.lang=LANG;
+  $('fReadLabel').textContent=L.readingLabel;
+  $('bulkText').placeholder=L.bulkPlaceholder;$('bulkText').lang=LANG;
+  $('studyKanaLabel').textContent=`Also include the ${L.lettersWord} used in these words`;
+  $('writeNote').textContent=L.handwriting?(LANG==='ko'?'Write it by hand, then compare with the correct letters and mark yourself.':'Write it by hand. Your strokes are checked automatically.')
+    :`Type it, including ${LANG==='fr'?'accents and the article (le, la, l’)':'umlauts, capitals and the article (der, die, das)'}. Checked automatically.`;
+  $('dirLangBtn').textContent=L.name;
+  $('studyAudioLabel').textContent=`Play ${L.name} audio automatically`;
+  $('typeIn').lang=LANG;
+  $('accentKeys').innerHTML=(L.accents||[]).map(k=>`<button type="button" class="btn" data-k="${k}">${k}</button>`).join('');
+  $('wTitle').lang=LANG;
+  if(!CLOUD)$('acctInitial').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+}
+applyLanguage();
 $('emailForm').addEventListener('submit',e=>{
   e.preventDefault();
   const f=e.target;$('authMsg').textContent='';

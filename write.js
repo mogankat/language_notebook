@@ -7,10 +7,13 @@
 const KVG_BASE = 'https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@r20250816/kanji/';
 const kvgCache = new Map();
 // Kana, ー, 々 and kanji: the characters worth practising (skips ~, spaces, punctuation, romaji)
-const WRITABLE = /[ぁ-ゖゝゞァ-ヺー-ヾ々㐀-䶿一-鿿豈-﫿]/;
+// Korean Hangul syllables and letters are writable too (but have no stroke data to check against)
+const WRITABLE = /[\u3041-\u3096\u309d\u309e\u30a1-\u30fa\u30fc-\u30fe\u3005\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7a3\u3131-\u318e]/;
+const HAS_STROKE_DATA = /[\u3041-\u3096\u309d\u309e\u30a1-\u30fa\u30fc-\u30fe\u3005\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/; // KanjiVG: kana and kanji only
 const writableChars = text => [...String(text || '')].filter(c => WRITABLE.test(c));
 
 function loadStrokes(ch) {
+  if (!HAS_STROKE_DATA.test(ch)) return Promise.resolve(null);
   if (!kvgCache.has(ch)) {
     const file = ch.codePointAt(0).toString(16).padStart(5, '0') + '.svg';
     kvgCache.set(ch, fetch(KVG_BASE + file)
@@ -85,9 +88,12 @@ function strokeMatches(a, b) {
 
 // → {ok: true|false|null (can't check), reason, bad: index of the stroke to highlight}
 async function checkCharacter(ch, ink) {
+  if (!HAS_STROKE_DATA.test(ch)) return { ok: null, reason: 'Hangul can’t be checked automatically yet. Compare your writing with the red letter yourself.' };
   if (!ink?.length) return { ok: false, reason: 'Nothing written yet.' };
   const ref = await referenceStrokes(ch);
-  if (!ref) return { ok: null, reason: 'Can’t check this character right now (stroke data needs an internet connection). Compare it with the red character yourself.' };
+  if (!ref) return { ok: null, reason: HAS_STROKE_DATA.test(ch)
+    ? 'Can’t check this character right now (stroke data needs an internet connection). Compare it with the red character yourself.'
+    : 'Hangul can’t be checked automatically yet. Compare your writing with the red letter yourself.' };
   const mine = fitToSquare(ink.map(resample)), theirs = fitToSquare(ref);
   if (mine.length !== theirs.length) {
     const n = theirs.length;
@@ -213,7 +219,7 @@ function createPad(root, { checkButton = true } = {}) {
   async function playOrder() {
     await loadStrokes(st.chars[st.i]);
     const paths = [...guide.querySelectorAll('path')];
-    if (!paths.length) { msg('Stroke order needs an internet connection the first time each character is shown.'); return; }
+    if (!paths.length) { msg(HAS_STROKE_DATA.test(st.chars[st.i]) ? 'Stroke order needs an internet connection the first time each character is shown.' : 'Stroke order isn’t available for Hangul yet. Tap “Trace” to write over the letter.'); return; }
     stopOrder(); st.order = true; update();
     let t = 300;
     for (const p of paths) {

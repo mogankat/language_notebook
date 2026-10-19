@@ -1,7 +1,9 @@
 // Cloud sync: Firebase sign-in + Firestore storage, loaded only when firebase-config.js has a config.
-// Data layout (one private space per person):
-//   users/{uid}/words/{wordId}   one document per dictionary entry
-//   users/{uid}/meta/chars       { status: { "か": "known", ... } }
+// Data layout (one private space per person; Japanese keeps the original paths):
+//   users/{uid}/words/{wordId}                 Japanese: one document per notebook entry
+//   users/{uid}/meta/chars                     Japanese: { status: { "か": "known", ... } }
+//   users/{uid}/langs/{fr|ko|de}/words/{id}    other languages, same shapes
+//   users/{uid}/langs/{fr|ko|de}/meta/chars
 // Firestore's offline cache keeps everything usable without a connection and syncs when back online.
 const cfg = window.FIREBASE_CONFIG;
 if (cfg) boot().catch(err => { console.error(err); app.authMessage('Could not load sign-in: ' + err.message, true); });
@@ -22,8 +24,10 @@ async function boot() {
     F.connectFirestoreEmulator(db, '127.0.0.1', 8080);
   }
   let uid = null, unsubs = [];
-  const wordRef = id => F.doc(db, 'users', uid, 'words', id);
-  const charsRef = () => F.doc(db, 'users', uid, 'meta', 'chars');
+  const langPath = code => code === 'ja' ? ['users', uid] : ['users', uid, 'langs', code]; // app.lang = the language on screen
+  const wordsCol = (code = app.lang) => F.collection(db, ...langPath(code), 'words');
+  const wordRef = id => F.doc(db, ...langPath(app.lang), 'words', id);
+  const charsRef = () => F.doc(db, ...langPath(app.lang), 'meta', 'chars');
 
   const MESSAGES = {
     'auth/invalid-credential': 'Wrong email or password.',
@@ -54,6 +58,16 @@ async function boot() {
 
   // index.html calls this after every change (see persist() there)
   window.cloud = {
+    // Word counts for the language list in the profile sidebar (from the server, or the offline cache)
+    async counts() {
+      if (!uid) return null;
+      const out = {};
+      await Promise.all(LANG_ORDER.map(async code => {
+        try { out[code] = (await F.getCountFromServer(wordsCol(code))).data().count; }
+        catch { try { out[code] = (await F.getDocsFromCache(wordsCol(code))).size; } catch {} }
+      }));
+      return out;
+    },
     push(change) {
       if (!uid) return;
       const ops = [];
@@ -84,11 +98,11 @@ async function boot() {
     uid = user.uid;
     app.signedIn({ name: user.displayName || user.email, email: user.email });
     let checkedMigration = false;
-    unsubs.push(F.onSnapshot(F.collection(db, 'users', uid, 'words'), { includeMetadataChanges: true }, snap => {
+    unsubs.push(F.onSnapshot(wordsCol(), { includeMetadataChanges: true }, snap => {
       app.setWords(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       app.setSync(snap.metadata.hasPendingWrites ? 'saving' : snap.metadata.fromCache ? 'offline' : 'synced');
       // Wait for an answer from the server (not just the offline cache) before offering to copy local words
-      if (!checkedMigration && !snap.metadata.fromCache) { checkedMigration = true; offerMigration(user.uid); }
+      if (!checkedMigration && !snap.metadata.fromCache) { checkedMigration = true; if (app.lang === 'ja') offerMigration(user.uid); }
     }, showErr));
     unsubs.push(F.onSnapshot(charsRef(), snap => app.setChars(snap.data()?.status || {}), showErr));
   });
