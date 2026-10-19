@@ -39,7 +39,8 @@ progress, synced across Mac, iPhone and iPad.
 
 1. Left menu: **Build → Authentication → Get started**.
 2. **Sign-in method** tab: enable **Google** (choose your email as the support email) and **Email/Password**.
-3. **Settings** tab → **Authorized domains** → **Add domain** → `YOUR-GITHUB-USERNAME.github.io`.
+3. **Settings** tab → **Authorized domains** → **Add domain** → the address the site is served from:
+   `YOUR-GITHUB-USERNAME.github.io`, or your custom domain if you use one (e.g. `notebook.toddtechtalks.com`).
 
 ## 5. Publish on GitHub Pages
 
