@@ -103,11 +103,19 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 @media (hover:none){.kbd-hint{display:none}}
 /* writing pad */
 .wp{display:grid;gap:8px;user-select:none;-webkit-user-select:none}
-.wp-slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.wp-top{display:flex;gap:6px;align-items:center;justify-content:center}
+.wp-top .wp-arrow{padding:4px 12px;font-size:20px;line-height:1.1;flex:none}
+.wp-top .wp-arrow:disabled{opacity:.3}
+.wp-slots{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding:2px;min-width:0}
+.wp-slots .slot{flex:none}
+.wp-slots .slot.ok{border-color:#3fa35a;color:#3fa35a}
+.wp-slots .slot.bad{border-color:var(--accent);color:var(--accent)}
+.wp-guide path.bad{stroke-width:7;opacity:1}
+.wp-box.has-bad .nums{display:block}
 .wp-slots .slot{min-width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font:inherit;font-size:18px;cursor:pointer;padding:0 6px}
 .wp-slots .slot.inked{color:var(--ink);background:var(--chip)}
 .wp-slots .slot.cur{outline:2px solid var(--accent)}
-.wp-box{position:relative;width:min(100%,52vh,440px);aspect-ratio:1;margin:0 auto;background:var(--panel);border:2px solid var(--line);border-radius:12px;overflow:hidden;
+.wp-box{position:relative;width:max(200px,min(100%,calc(100vh - 300px),440px));width:max(200px,min(100%,calc(100dvh - 300px),440px));aspect-ratio:1;margin:0 auto;background:var(--panel);border:2px solid var(--line);border-radius:12px;overflow:hidden;
   touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .wp-box>*{position:absolute;inset:0;width:100%;height:100%}
 .wp-box canvas{z-index:1;touch-action:none;cursor:crosshair}
@@ -120,10 +128,10 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 .wp-box.checked .wp-guide,.wp-box.order .wp-guide{z-index:2;opacity:.7;color:var(--accent)}
 .wp-box.order .wp-guide{opacity:1}
 .wp-box.order .nums{display:block}
-.wp-tools,.wp-nav{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.wp-tools .btn,.wp-nav .btn{padding:8px 12px}
+.wp-tools{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.wp-tools .btn{padding:8px 12px}
 .wp-tools .btn.on{outline:2px solid var(--accent)}
-.wp-nav{justify-content:space-between}
+
 .wp-msg{margin:0;min-height:1.2em;text-align:center;font-size:13px;color:var(--muted)}
 .wp-credit{text-align:center;font-size:11px;color:var(--muted);margin:0}
 .wp-credit a{color:inherit}
@@ -137,7 +145,25 @@ dialog.wide form{padding:14px}
 .flash.compact .f-en{font-size:24px}
 .flash.compact .f-jp{font-size:40px}
 #studyPad{margin:12px 0}
-#studyPad .wp-box{width:min(100%,40vh,440px)}
+#studyPad .wp-box{width:max(200px,min(100%,calc(100vh - 430px),440px));width:max(200px,min(100%,calc(100dvh - 430px),440px))}
+/* study cards */
+.f-label{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.f-row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
+.btn.small{padding:4px 10px;font-size:13px}
+.verdict{font-weight:600;margin-top:6px}
+.verdict.good,.wp-msg.good{color:#3fa35a}
+.verdict.bad,.wp-msg.bad,.hint.err{color:var(--accent)}
+.listening{color:var(--accent);font-weight:600;animation:pulse .9s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.45}to{opacity:1}}
+.say{display:inline-flex;align-items:center;justify-content:center}
+.say svg{width:15px;height:15px}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.icon-btn svg{width:16px;height:16px;flex:none}
+.type-list{display:grid;gap:8px}
+.type-opt{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font-size:15px;cursor:pointer}
+.type-opt input{width:auto;margin-top:4px}
+.type-opt small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.type-opt.disabled{opacity:.55;cursor:default}
 /* study */
 .study-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px;margin-bottom:8px}
 .progbar{height:4px;background:var(--chip);border-radius:2px;overflow:hidden}
@@ -156,7 +182,12 @@ dialog.wide form{padding:14px}
 .check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink);margin-top:16px}
 .check input{width:auto}
 .done-score{font-size:48px;font-weight:600;text-align:center;margin-top:24px}
-@media (max-width:520px){.f-jp{font-size:40px}.f-en{font-size:24px}.wp-slots .slot{min-width:30px;height:30px;font-size:16px}}
+@media (max-width:520px){.f-jp{font-size:40px}.f-en{font-size:24px}.wp-slots .slot{min-width:30px;height:30px;font-size:16px}
+  body.studying header h1{display:none}
+  body.studying header{padding-top:12px}
+  .flash.compact{padding:10px 12px;gap:4px}
+  .flash.compact .f-en{font-size:22px}
+  .wp-top .wp-arrow{padding:2px 10px}}
 @media (max-width:520px){.two{grid-template-columns:1fr}.k b{font-size:22px}.jp{font-size:20px}}
 </style>
 </head>
@@ -222,14 +253,16 @@ dialog.wide form{padding:14px}
     <div id="studySetup">
       <div class="section-title">Cards to study <span style="font-weight:400">· pick All or one or more tags</span></div>
       <div class="row" id="studyTags" style="margin-top:0"></div>
-      <div class="section-title">Practice</div>
-      <div class="seg" id="studyMode">
-        <button type="button" class="btn" data-mode="read">👁 Read</button>
-        <button type="button" class="btn" data-mode="write">✍️ Write</button>
+      <label class="check"><input type="checkbox" id="studyKana"> Also include the kana used in these words</label>
+      <div class="section-title">Practise</div>
+      <div class="type-list" id="studyTypes">
+        <label class="type-opt"><input type="checkbox" value="read"><span><b>Reading</b><small>See it, recall it, then mark yourself.</small></span></label>
+        <label class="type-opt"><input type="checkbox" value="write"><span><b>Writing</b><small>Write it by hand. Your strokes are checked automatically.</small></span></label>
+        <label class="type-opt" id="speakOpt"><input type="checkbox" value="speak"><span><b>Speaking</b><small id="speakNote"></small></span></label>
       </div>
-      <p class="hint" id="studyModeHint" style="margin-top:6px"></p>
+      <p class="hint" style="margin-top:8px">Each card uses one of the ticked skills, picked at random.</p>
       <div id="studyDirWrap">
-      <div class="section-title">Show first</div>
+      <div class="section-title">Reading cards show first</div>
       <div class="seg" id="studyDir">
         <button type="button" class="btn" data-dir="jp">Japanese</button>
         <button type="button" class="btn" data-dir="en">English</button>
@@ -245,7 +278,7 @@ dialog.wide form{padding:14px}
       <div class="flash" id="flash"></div>
       <div class="seg" id="studyBtns"></div>
       <div id="studyPad" hidden></div>
-      <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space to flip · ← Again · → Got it</p>
+      <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space: show answer / check / speak / continue · ← Again · → Got it</p>
     </div>
     <div id="studyDone" hidden>
       <div class="done-score" id="studyScore"></div>
@@ -340,7 +373,7 @@ dialog.wide form{padding:14px}
   <form method="dialog">
     <button type="button" class="bigchar" id="cChar" lang="ja" title="Play pronunciation"></button>
     <p class="hint" style="text-align:center;font-size:16px;margin-top:-4px" id="cRomaji"></p>
-    <div style="text-align:center;display:flex;gap:8px;justify-content:center"><button type="button" class="btn" id="cPlay">🔊 Play sound</button><button type="button" class="btn" id="cWrite">✍️ Practice writing</button></div>
+    <div style="text-align:center;display:flex;gap:8px;justify-content:center"><button type="button" class="btn icon-btn" id="cPlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg> Play sound</button><button type="button" class="btn icon-btn" id="cWrite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Practise writing</button></div>
     <div class="seg" id="cStatus"></div>
     <div class="section-title" id="cWordsTitle"></div>
     <div class="mini" id="cWords"></div>
@@ -368,6 +401,8 @@ function persist(change={}){
 let words=CLOUD?[]:load(KEY_WORDS,[]), chars=CLOUD?{}:load(KEY_CHARS,{});
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Line icons (used instead of emoji)
+const ICON={speaker:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>'};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 /* ---------- kana helpers ---------- */
@@ -404,17 +439,17 @@ function toKana(s){
 /* ---------- words view ---------- */
 let activeTags=new Set(), editingId=null;
 function allTags(){const s=new Set();words.forEach(w=>(w.tags||[]).forEach(t=>s.add(t)));return[...s].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))}
+// Loose kana form: long vowels written as ー or doubled (koohii ↔ コーヒー), particle は/へ spelled wa/e
+function looseKana(s){let o='',pv='';for(const ch of s.replace(/は/g,'わ').replace(/へ/g,'え')){
+  const v=VOWEL[ch];
+  if(ch==='ー'||(pv&&'あいうえお'.includes(ch)&&(v===pv||(pv==='o'&&ch==='う')||(pv==='e'&&ch==='い'))))continue;
+  o+=ch;pv=v||''}return o}
 function matcher(q){
   q=q.trim(); if(!q) return()=>true;
   const nq=norm(q);
   let kq='';
   if(/^[a-z' \-]+$/i.test(q)){kq=toKana(q.toLowerCase().replace(/[' ]/g,'')).replace(/[a-z]+$/,'');if(!/[ぁ-ゖー]/.test(kq))kq=''}
-  // Loose kana form: long vowels written as ー or doubled (koohii ↔ コーヒー), particle は/へ spelled wa/e
-  const loose=s=>{let o='',pv='';for(const ch of s.replace(/は/g,'わ').replace(/へ/g,'え')){
-    const v=VOWEL[ch];
-    if(ch==='ー'||(pv&&'あいうえお'.includes(ch)&&(v===pv||(pv==='o'&&ch==='う')||(pv==='e'&&ch==='い'))))continue;
-    o+=ch;pv=v||''}return o};
-  const lq=kq&&loose(kq);
+  const loose=looseKana, lq=kq&&loose(kq);
   return w=>{const h=norm([w.jp,w.reading,w.meaning,(w.tags||[]).join(' '),w.notes].join(' \u0001 '));return h.includes(nq)||(kq&&(h.includes(kq)||loose(h).includes(lq)))};
 }
 function render(){
@@ -436,7 +471,7 @@ function render(){
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
     <div class="card" data-id="${w.id}">
-      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">🔊</button>${writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practice writing" aria-label="Practice writing">✍️</button>`:''}</div>
+      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>${writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practise writing" aria-label="Practise writing">${ICON.pen}</button>`:''}</div>
       <span class="type">${esc(w.type)}</span>
       <div class="meaning">${esc(w.meaning)}</div>
       ${w.notes?`<div class="notes">${esc(w.notes)}</div>`:''}
@@ -561,7 +596,7 @@ function openChar(ch,r){
   $('cStatus').onclick=e=>{const s=e.target.dataset.s;if(!s)return;if(s==='new')delete chars[ch];else chars[ch]=s;persist({chars:[ch]});draw();renderKana()};
   const hits=words.filter(w=>(w.jp+' '+w.reading).includes(ch));
   $('cWordsTitle').textContent=hits.length?`In your notebook (${hits.length})`:'Not in any of your words yet';
-  $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div lang="ja" data-id="${w.id}" title="Play pronunciation">🔊 ${esc(w.jp)} <span>— ${esc(w.meaning)}</span></div>`).join('');
+  $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div lang="ja" data-id="${w.id}" title="Play pronunciation">${ICON.speaker} ${esc(w.jp)} <span>— ${esc(w.meaning)}</span></div>`).join('');
   $('cWords').onclick=e=>{const d=e.target.closest('[data-id]');if(d)sayWord(words.find(w=>w.id===d.dataset.id))};
   $('cWrite').onclick=()=>{$('dChar').close();writeChar(ch,r)};
   $('cSearch').onclick=()=>{$('dChar').close();$('q').value=ch;showTab('words');render()};
@@ -616,115 +651,247 @@ function sayKana(ch){
 // Prefer a kana reading (more reliable than kanji); romaji readings aren't speakable as Japanese.
 const sayWord=w=>w&&speak(/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
 
-/* ---------- study (flashcards) ---------- */
-const study={tags:new Set(),dir:'jp',mode:'read',hint:false,pad:null,audio:true,queue:[],missed:new Set(),done:0,total:0,cur:null,flipped:false,front:'jp'};
-try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){study.tags=new Set(p.tags||[]);study.dir=p.dir||'jp';study.mode=p.mode==='write'?'write':'read';study.audio=p.audio!==false}}catch{}
-const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],dir:study.dir,mode:study.mode,audio:study.audio}))}catch{}};
-// A word is in the deck if it has ANY of the selected tags (so "Unit 1" + "Unit 2" studies both)
-// Write mode skips entries with nothing to write (e.g. a romaji-only entry)
-const deckWords=()=>(study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words)
-  .filter(w=>study.mode!=='write'||writableChars(w.jp).length);
+/* ---------- study (flashcards) ----------
+   A card is a word, or a kana used in the chosen words, practised one way picked at random from the
+   ticked skills: read (see it, mark yourself), write (handwriting is checked against the strokes)
+   or speak (speech recognition checks what you say). */
+const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+const isBrave=!!navigator.brave; // Brave ships the API but blocks the recognition service
+const canSpeak=!!SpeechRec&&!isBrave;
+const SKILLS=['read','write','speak'];
+const study={tags:new Set(),skills:new Set(['read','write']),kana:true,dir:'jp',audio:true,
+  queue:[],missed:new Set(),done:0,total:0,card:null,stage:'front',hint:false,pad:null,result:null,heard:'',listening:false,speakErr:null,note:'',rec:null};
+try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){
+  study.tags=new Set(p.tags||[]);
+  const sk=(p.skills||(p.mode==='write'?['write']:null)||[]).filter(x=>SKILLS.includes(x));if(sk.length)study.skills=new Set(sk);
+  study.kana=p.kana!==false;study.dir=p.dir||'jp';study.audio=p.audio!==false}}catch{}
+const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],skills:[...study.skills],kana:study.kana,dir:study.dir,audio:study.audio}))}catch{}};
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.random()*a.length|0];
+// A word is chosen if it has ANY of the selected tags (so "Unit 1" + "Unit 2" studies both)
+const tagWords=()=>study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words;
+const kanaRomaji=ch=>KANA_FILE[toHira(ch)];
+const isKatakana=ch=>/[\u30a1-\u30fa]/.test(ch);
+// Kana from the chosen words that are in the Characters charts (small ゃ, っ and ー are skipped)
+function kanaIn(list){const seen=new Set();for(const w of list)for(const c of (w.jp||'')+(w.reading||''))if(kanaRomaji(c))seen.add(c);return[...seen]}
+function skillsFor(kind,w){
+  return [...study.skills].filter(s=>s==='read'||(s==='write'&&(kind==='kana'||writableChars(w.jp).length))||(s==='speak'&&kind==='word'&&canSpeak&&writableChars(w.jp).length));
+}
+function buildDeck(){
+  const list=tagWords(),items=[];
+  for(const w of list){const sk=skillsFor('word',w);if(sk.length)items.push({kind:'word',id:w.id,skills:sk})}
+  if(study.kana)for(const ch of kanaIn(list)){const sk=skillsFor('kana');if(sk.length)items.push({kind:'kana',ch,skills:sk})}
+  return items;
+}
 
 function renderStudySetup(){
   const tags=allTags();study.tags.forEach(t=>{if(!tags.includes(t))study.tags.delete(t)});
   const cnt=t=>words.filter(w=>(w.tags||[]).includes(t)).length;
   $('studyTags').innerHTML=`<button class="chip ${study.tags.size?'':'on'}" data-tag="">All (${words.length})</button>`+
     tags.map(t=>`<button class="chip ${study.tags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)} (${cnt(t)})</button>`).join('');
+  $('studyTypes').querySelectorAll('input').forEach(i=>{i.checked=study.skills.has(i.value)});
+  const sp=$('speakOpt').querySelector('input');sp.disabled=!canSpeak;if(!canSpeak)sp.checked=false;
+  $('speakOpt').classList.toggle('disabled',!canSpeak);
+  $('speakNote').textContent=canSpeak?'Say it out loud. Your browser’s speech recognition checks it (it sends the audio to Apple or Google).'
+    :isBrave?'Not available in Brave, which blocks speech recognition. Use Safari or Chrome.':'Not available in this browser. Use Safari or Chrome.';
+  $('studyKana').checked=study.kana;
+  $('studyDirWrap').hidden=!study.skills.has('read');
   $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
-  $('studyMode').querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===study.mode));
-  $('studyDirWrap').hidden=study.mode==='write';
-  $('studyModeHint').textContent=study.mode==='write'?'See the English (and hear it), write the Japanese, then compare.':'See one side, remember the other.';
   $('studyAudio').checked=study.audio;
-  const n=deckWords().length;
-  $('studyStart').textContent=n?`Start · ${n} card${n===1?'':'s'}`:'No cards yet: add some words first';
-  $('studyStart').disabled=!n;
+  const deck=buildDeck(),nk=deck.filter(c=>c.kind==='kana').length,nw=deck.length-nk;
+  $('studyStart').textContent=!study.skills.size?'Tick at least one skill':deck.length?`Start · ${deck.length} card${deck.length===1?'':'s'}`+(nk?` (${nw} word${nw===1?'':'s'}, ${nk} kana)`:''):'No cards yet: add some words first';
+  $('studyStart').disabled=!deck.length;
 }
 $('studyTags').onclick=e=>{const t=e.target.dataset.tag;if(t==null)return;if(t==='')study.tags.clear();else study.tags.has(t)?study.tags.delete(t):study.tags.add(t);saveStudyPrefs();renderStudySetup()};
+$('studyTypes').onchange=e=>{const v=e.target.value;e.target.checked?study.skills.add(v):study.skills.delete(v);saveStudyPrefs();renderStudySetup()};
+$('studyKana').onchange=e=>{study.kana=e.target.checked;saveStudyPrefs();renderStudySetup()};
 $('studyDir').onclick=e=>{const d=e.target.dataset.dir;if(!d)return;study.dir=d;saveStudyPrefs();renderStudySetup()};
-$('studyMode').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;study.mode=m;saveStudyPrefs();renderStudySetup()};
 $('studyAudio').onchange=e=>{study.audio=e.target.checked;saveStudyPrefs()};
-$('studyStart').onclick=()=>startStudy(deckWords());
-$('studyAgain').onclick=()=>startStudy(deckWords());
-$('studyRetry').onclick=()=>startStudy(words.filter(w=>study.missed.has(w.id)));
+$('studyStart').onclick=()=>startStudy(buildDeck());
+$('studyAgain').onclick=()=>startStudy(buildDeck());
+$('studyRetry').onclick=()=>startStudy([...study.missed]);
 
-function studyView(v){$('studySetup').hidden=v!=='setup';$('studyRun').hidden=v!=='run';$('studyDone').hidden=v!=='done'}
-function startStudy(list){
-  if(!list.length)return;
-  study.queue=shuffle(list.map(w=>w.id));study.total=list.length;study.missed=new Set();study.done=0;
+function studyView(v){$('studySetup').hidden=v!=='setup';$('studyRun').hidden=v!=='run';$('studyDone').hidden=v!=='done';document.body.classList.toggle('studying',v==='run')}
+function startStudy(items){
+  if(!items.length)return;
+  items.forEach(it=>{it.skill=pick(it.skills)}); // a missed card keeps its skill when it comes back
+  study.queue=shuffle([...items]);study.total=items.length;study.missed=new Set();study.done=0;
   studyView('run');nextCard();
 }
+const curWord=()=>study.card?.kind==='word'?words.find(w=>w.id===study.card.id):null;
+const playCard=()=>study.card.kind==='kana'?sayKana(study.card.ch):sayWord(curWord());
 function nextCard(){
-  while(study.queue.length&&!words.some(w=>w.id===study.queue[0]))study.queue.shift(); // skip deleted words
+  while(study.queue.length&&study.queue[0].kind==='word'&&!words.some(w=>w.id===study.queue[0].id))study.queue.shift(); // deleted words
   if(!study.queue.length)return finishStudy();
-  study.cur=words.find(w=>w.id===study.queue[0]);study.flipped=false;
-  study.front=study.mode==='write'?'en':study.dir==='mix'?(Math.random()<.5?'jp':'en'):study.dir;
-  study.hint=false;
-  const writing=study.mode==='write';
-  $('studyPad').hidden=!writing;$('flash').classList.toggle('compact',writing);
-  if(writing){study.pad||=createPad($('studyPad'),{checkButton:false});study.pad.load(study.cur.jp)}
+  const c=study.card=study.queue[0];
+  Object.assign(study,{stage:'front',hint:false,result:null,heard:'',listening:false,speakErr:null,note:''});
+  study.front=c.skill==='read'&&c.kind==='word'?(study.dir==='mix'?pick(['jp','en']):study.dir):null;
+  const writing=c.skill==='write';
+  $('studyPad').hidden=!writing;$('flash').classList.toggle('compact',c.skill!=='read');
+  if(writing){study.pad||=createPad($('studyPad'),{checkButton:false});study.pad.load(c.kind==='word'?curWord().jp:c.ch)}
   drawCard();
-  if(writing&&study.audio)sayWord(study.cur);
-  if(study.front==='jp'&&study.audio)sayWord(study.cur);
+  // Audio when the card appears, unless hearing it would give the answer away
+  if(study.audio&&(writing||study.front==='jp'))playCard();
 }
 function drawCard(){
-  const w=study.cur,jp=study.front==='jp';
-  const jpHtml=`<div class="f-jp" lang="ja">${esc(w.jp)}</div>`, enHtml=`<div class="f-en">${esc(w.meaning)}</div>`;
-  const read=w.reading?`<div class="f-read" lang="ja">${esc(w.reading)}</div>`:'';
-  const say=`<button type="button" class="say" data-say="1" title="Play pronunciation">🔊</button>`;
-  let h=jp?jpHtml+say:enHtml;
-  if(study.mode==='write'){
-    // Prompt: English + audio, optional reading hint; answer: the word to compare with your writing
-    h=enHtml+`<div style="display:flex;gap:6px;justify-content:center;align-items:center">${say}${w.reading&&!study.flipped?(study.hint?read:'<button type="button" class="btn" data-hint="1" style="padding:4px 10px">Show reading</button>'):''}</div>`;
-    if(study.flipped)h+='<hr>'+jpHtml+read+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
-  }else if(study.flipped)h+='<hr>'+(jp?read+enHtml:jpHtml+read+say)+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
-  else if(study.mode!=='write')h+='<div class="hint">Tap or press Space to show the answer</div>';
+  const c=study.card,w=curWord(),back=study.stage==='back';
+  const say=`<button type="button" class="say" data-say="1" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`;
+  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp" lang="ja">${esc(t)}</div>`, en=t=>`<div class="f-en">${esc(t)}</div>`;
+  const read=w?.reading?`<div class="f-read" lang="ja">${esc(w.reading)}</div>`:'';
+  const notes=w?.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'';
+  const line=x=>`<div class="f-row">${x}</div>`;
+  const hintBtn=(text,shown)=>study.hint?shown:`<button type="button" class="btn small" data-hint="1">${text}</button>`;
+  const verdict=(ok,text)=>`<div class="verdict ${ok?'good':'bad'}">${ok?'✓':'✗'} ${text}</div>`;
+  let h='';
+  if(c.skill==='read'){
+    if(c.kind==='kana'){h=label('Reading · what sound is this?')+jpBig(c.ch);if(back)h+='<hr>'+en(kanaRomaji(c.ch))+say}
+    else{
+      const jp=study.front==='jp';
+      h=label(jp?'Reading · what does it mean?':'Reading · say or think the Japanese')+(jp?jpBig(w.jp)+say:en(w.meaning));
+      if(back)h+='<hr>'+(jp?read+en(w.meaning):jpBig(w.jp)+read+say)+notes;
+    }
+    if(!back)h+='<div class="hint">Tap or press Space to show the answer</div>';
+  }
+  if(c.skill==='write'){
+    if(c.kind==='kana')h=label(`Writing · write this ${isKatakana(c.ch)?'katakana':'hiragana'}`)+en(kanaRomaji(c.ch))+line(say);
+    else h=label('Writing · write it in Japanese')+en(w.meaning)+line(say+(w.reading&&!back?hintBtn('Show reading',read):''));
+    if(back){
+      h+='<hr>'+(c.kind==='kana'?jpBig(c.ch):jpBig(w.jp)+read);
+      h+=study.result===true?verdict(true,'Correct'):study.result===false?verdict(false,study.gaveUp?'Here’s how it’s written':writableChars(c.kind==='kana'?c.ch:w.jp).length>1?'Not quite: tap a red box above the pad to see why':'Not quite: see the note under the pad'):'<div class="hint">Couldn’t check automatically. Compare with the red characters and mark it yourself.</div>';
+    }else if(study.note)h+=`<div class="hint">${study.note}</div>`;
+  }
+  if(c.skill==='speak'){
+    h=label('Speaking · say it in Japanese')+en(w.meaning);
+    if(!back)h+=line(hintBtn('Show the Japanese',jpBig(w.jp)+read));
+    if(study.listening)h+='<div class="listening">Listening… speak now</div>';
+    if(study.speakErr)h+=`<div class="hint err">${study.speakErr}</div>`;
+    if(back){
+      h+='<hr>'+jpBig(w.jp)+read+say;
+      if(study.heard||study.gaveUp)h+=(study.heard?`<div class="hint">Heard: <span lang="ja">${esc(study.heard)}</span></div>`:'')+(study.lastOk?verdict(true,study.result?'Correct':'Correct this time. This card will come back.'):verdict(false,study.gaveUp?'Listen and repeat it':'Not a match'));
+    }
+  }
   $('flash').innerHTML=h;
-  $('studyBtns').innerHTML=study.flipped
-    ?'<button type="button" class="btn big again" data-a="0">← Again</button><button type="button" class="btn big good" data-a="1">Got it →</button>'
-    :'<button type="button" class="btn big" data-a="flip">Show answer</button>';
+  // Buttons for this card and stage
+  const B=(a,t,cls='')=>`<button type="button" class="btn big ${cls}" data-a="${a}">${t}</button>`;
+  let btns;
+  if(c.skill==='read')btns=back?B('0','← Again','again')+B('1','Got it →','good'):B('flip','Show answer');
+  else if(c.skill==='write')btns=!back?B('giveup',"I don’t know")+B('check','Check','primary')
+    :study.result===null?B('0','← Again','again')+B('1','Got it →','good')
+    :study.result||study.gaveUp?B('next','Continue →','primary'):B('right','Count it as right')+B('next','Continue →','primary');
+  else{ // speak
+    if(study.listening)btns=B('stop','Stop listening');
+    else if(!back)btns=B('giveup',"I don’t know")+B('speak',`${ICON.mic} Speak`,'primary icon-btn');
+    else if(study.speakErrHard)btns=B('0','← Again','again')+B('1','Got it →','good');
+    else btns=(study.lastOk||study.gaveUp?'':B('speak','Try again','icon-btn'))+(!study.result&&!study.lastOk&&study.heard&&!study.gaveUp?B('right','It was right'):'')+B('next','Continue →','primary');
+  }
+  $('studyBtns').innerHTML=btns;
   const left=study.queue.length;
   $('studyProg').textContent=`${study.done} done · ${left} left`;
   $('studyBar').style.width=`${100*study.done/(study.done+left)}%`;
 }
-function flip(){
-  if(study.flipped)return;study.flipped=true;drawCard();
-  if(study.mode==='write'){study.pad.revealAll();return}
-  if(study.front==='en'&&study.audio)sayWord(study.cur);
+function reveal(){if(study.stage==='back')return;study.stage='back';drawCard();if(study.audio&&study.front!=='jp')playCard()}
+async function checkWriting(){
+  if(study.pad.isEmpty()){study.note='Write it in the box first, or tap “I don’t know”.';return drawCard()}
+  const r=await study.pad.check();
+  study.result=r.ok;study.stage='back';drawCard();
+  if(study.audio)playCard();
+}
+function giveUp(){
+  study.gaveUp=true;study.result=false;study.lastOk=false;study.stage='back';
+  if(study.card.skill==='write')study.pad.check(); // shows the correct characters over whatever was written
+  drawCard();if(study.audio)playCard();
+}
+/* Speaking: compare what the recogniser heard with the word's Japanese, its reading, and any
+   transcripts accepted before with "It was right" (e.g. 猫 for a word saved only as ねこ) */
+const speechForm=s=>looseKana(norm(s).replace(/[^\u3041-\u3096\u30fc\u3005\u3400-\u9fff]/g,''));
+function spokenMatches(said,w){
+  said=speechForm(said);if(!said)return false;
+  const reading=/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:toKana(String(w.reading||'').toLowerCase().replace(/[^a-z-]/g,''));
+  return [w.jp,reading,...(w.heard||[])].map(speechForm).filter(Boolean).some(f=>said===f||(f.length>1&&said.includes(f)));
+}
+const SPEECH_ERRORS={
+  'not-allowed':'The microphone is blocked. Allow it for this site in your browser’s settings.',
+  'service-not-allowed':'Speech recognition is turned off. On iPhone/iPad: Settings → General → Keyboard → Enable Dictation.',
+  'network':'Speech recognition couldn’t reach its service. Check your connection (Brave doesn’t support it: use Safari or Chrome).',
+  'audio-capture':'No microphone was found.',
+  'no-speech':'Didn’t hear anything. Tap Speak and talk straight away.',
+};
+function listen(){
+  const w=curWord();
+  try{speechSynthesis.cancel()}catch{}
+  const r=study.rec=new SpeechRec();
+  r.lang='ja-JP';r.maxAlternatives=5;r.interimResults=false;r.continuous=false;
+  let settled=false;
+  const stopWith=fn=>{if(settled)return;settled=true;study.listening=false;fn();drawCard()};
+  r.onresult=e=>stopWith(()=>{
+    const alts=[...e.results[0]].map(a=>a.transcript.trim()).filter(Boolean);
+    const ok=alts.some(a=>spokenMatches(a,w));
+    study.heard=(ok?alts.find(a=>spokenMatches(a,w)):alts[0])||'';study.lastOk=ok;study.speakErr=null;
+    if(study.result===null)study.result=ok; // only the first try counts for the score
+    study.stage='back';
+    if(study.audio)setTimeout(playCard,250);
+  });
+  r.onerror=e=>stopWith(()=>{
+    study.speakErr=SPEECH_ERRORS[e.error]||`Speech recognition error: ${e.error}`;
+    // If recognition can't work at all here, let the card be marked by hand
+    if(!['no-speech','aborted'].includes(e.error)){study.speakErrHard=true;study.stage='back'}
+  });
+  r.onend=()=>stopWith(()=>{if(!study.heard){study.speakErr=SPEECH_ERRORS['no-speech']}});
+  study.listening=true;study.speakErr=null;study.heard='';drawCard();
+  try{r.start()}catch(err){stopWith(()=>{study.speakErr='Couldn’t start the microphone: '+err.message})}
+}
+function acceptAsRight(){
+  const w=curWord();
+  if(study.card.skill==='speak'&&w&&study.heard){ // remember this transcript for next time
+    w.heard=[...new Set([...(w.heard||[]),study.heard])];persist({words:[w.id]});
+  }
+  answer(true);
+}
+function primaryAction(){
+  const c=study.card;if(!c||study.listening)return;
+  if(study.stage==='front'){if(c.skill==='read')return reveal();if(c.skill==='write')return checkWriting();return listen()}
+  if(c.skill!=='read'&&study.result!==null&&!study.speakErrHard)answer(study.result);
 }
 function answer(ok){
-  if(!study.flipped)return;
-  const id=study.queue.shift();
+  if(study.stage!=='back')return;
+  const it=study.queue.shift();
   if(ok)study.done++;
-  else{study.missed.add(id);study.queue.splice(Math.min(3,study.queue.length),0,id)} // comes back a few cards later
+  else{study.missed.add(it);study.queue.splice(Math.min(3,study.queue.length),0,it)} // comes back a few cards later
+  study.gaveUp=false;study.speakErrHard=false;study.lastOk=false;
   nextCard();
 }
 $('flash').onclick=e=>{
-  if(e.target.closest('[data-say]'))return sayWord(study.cur);
+  if(e.target.closest('[data-say]'))return playCard();
   if(e.target.closest('[data-hint]')){study.hint=true;return drawCard()}
-  if(study.mode!=='write')flip(); // in write mode only "Show answer" flips, so a stray tap can't
+  if(study.card?.skill==='read')reveal(); // writing/speaking cards only move on with their buttons
 };
-$('studyBtns').onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(a==null)return;e.target.blur();a==='flip'?flip():answer(a==='1')};
+$('studyBtns').onclick=e=>{
+  const a=e.target.closest('[data-a]')?.dataset.a;if(a==null)return;e.target.closest('button').blur();
+  ({flip:reveal,check:checkWriting,giveup:giveUp,speak:listen,stop:()=>study.rec?.stop(),next:()=>answer(study.result===true),right:acceptAsRight,
+    '0':()=>answer(false),'1':()=>answer(true)})[a]?.();
+};
 function finishStudy(){
   const m=study.missed.size;
   $('studyScore').textContent=`${study.total-m} / ${study.total}`;
   $('studyRetry').hidden=!m;$('studyRetry').textContent=`Study the ${m} I missed`;
   studyView('done');
 }
-function endStudy(){try{speechSynthesis.cancel()}catch{}$('studyPad').hidden=true;$('flash').classList.remove('compact');renderStudySetup();studyView('setup')}
+function endStudy(){try{speechSynthesis.cancel();study.rec?.abort()}catch{}$('studyPad').hidden=true;$('flash').classList.remove('compact');renderStudySetup();studyView('setup')}
 
 /* ---------- tabs & shortcuts ---------- */
 function showTab(t){
   for(const [id,tab] of [['words','tabWords'],['study','tabStudy'],['kana','tabKana']]){$(id).hidden=t!==id;$(tab).classList.toggle('on',t===id)}
+  document.body.classList.toggle('studying',t==='study'&&!$('studyRun').hidden);
   if(t==='study'&&!$('studySetup').hidden)renderStudySetup();
   try{localStorage.setItem('jn.tab',t)}catch{}
 }
 document.addEventListener('keydown',e=>{
   if(document.querySelector('dialog[open]')||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(!$('studyRun').hidden&&!$('study').hidden){
-    if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();return}
-    if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);return}
-    if(e.key==='ArrowRight'||e.key==='2'){e.preventDefault();answer(true);return}
+    if(e.key===' '||e.key==='Enter'){e.preventDefault();primaryAction();return}
+    const selfMarked=study.card?.skill==='read'||study.result===null||study.speakErrHard;
+    if(selfMarked&&(e.key==='ArrowLeft'||e.key==='1')){e.preventDefault();answer(false);return}
+    if(selfMarked&&(e.key==='ArrowRight'||e.key==='2')){e.preventDefault();answer(true);return}
   }
   if(e.key==='/'){e.preventDefault();showTab('words');$('q').focus()}
   if(e.key==='n'){e.preventDefault();openEdit()}
