@@ -53,7 +53,9 @@ function searchDict(q) {
     }
     if (en) {
       d.glosses.forEach((sense, si) => sense.forEach((g, gi) => {
-        const core = g.replace(/\s*\([^)]*\)/g, '').replace(/^to /, '').trim();
+        let core = g; // strip (asides), including nested ones like "dog (Canis (lupus) familiaris)"
+        while (/\([^()]*\)/.test(core)) core = core.replace(/\s*\([^()]*\)/g, '');
+        core = core.replace(/^to /, '').trim();
         let v = core === en || g === en ? 95 : enWord.test(g) ? 60 : en.length > 2 && g.includes(en) ? 25 : 0;
         if (v) s = Math.max(s, v - si * 8 - gi * 2); // earlier meanings rank higher
       }));

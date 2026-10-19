@@ -155,6 +155,9 @@ dialog.wide form{padding:14px}
 #studyPad{margin:12px 0}
 #studyPad .wp-box{width:max(200px,min(100%,calc(100vh - 430px),440px));width:max(200px,min(100%,calc(100dvh - 430px),440px))}
 /* dictionary */
+.search-hint{margin:8px 0 0;font-size:13px}
+#editDictHint{margin:-4px 0 2px;font-size:13px}
+#editDictHint .linkbtn{font-size:13px;color:var(--accent)}
 #dictBox{margin-top:18px}
 .dict-head{display:flex;justify-content:space-between;align-items:flex-end;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
 .dict-head .section-title{margin:0}
@@ -255,6 +258,7 @@ dialog.wide form{padding:14px}
         <input id="q" type="search" placeholder="Search your words and the dictionary" autocomplete="off">
         <button class="btn primary" onclick="openEdit()">+ Add</button>
       </div>
+      <p class="hint search-hint" id="searchHint">Tip: type a word here (English, romaji or Japanese) to look it up in the built-in dictionary of 22,000+ words, then tap <b>+ Add</b> on the one you want.</p>
       <div class="row">
         <select id="fType"><option value="">All types</option><option value="word">Words</option><option value="phrase">Phrases</option><option value="grammar">Grammar</option></select>
         <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="jp">あいうえお order</option><option value="en">English A–Z</option></select>
@@ -370,6 +374,7 @@ dialog.wide form{padding:14px}
 <dialog id="dEdit">
   <form method="dialog" id="fEdit">
     <h2 id="editTitle">Add entry</h2>
+    <p class="hint" id="editDictHint">Don’t want to type it all? <button type="button" class="linkbtn" onclick="findInDictionary()">Find it in the dictionary</button></p>
     <label>Japanese *<input name="jp" required placeholder="猫 / ねこ / おはようございます" lang="ja"></label>
     <div class="two">
       <label>Reading (kana or romaji)<input name="reading" placeholder="ねこ · neko" lang="ja"></label>
@@ -514,6 +519,15 @@ function render(){
     </div>`).join(''):`<div class="empty">No matches.</div>`;
 }
 $('q').addEventListener('input',render);
+const showSearchHint=()=>{$('searchHint').hidden=!!$('q').value.trim()};
+$('q').addEventListener('input',showSearchHint);
+// From the Add window: search the dictionary for whatever was typed there
+function findInDictionary(){
+  const f=$('fEdit'),text=(f.jp.value||f.meaning.value||f.reading.value).trim();
+  $('dEdit').close();showTab('words');
+  $('q').value=text;render();showSearchHint();
+  $('q').focus();window.scrollTo({top:0,behavior:'smooth'});
+}
 $('fType').addEventListener('change',render);
 $('fSort').addEventListener('change',render);
 $('tagChips').addEventListener('click',e=>{const t=e.target.dataset.tag;if(t==null)return;activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()});
@@ -530,6 +544,7 @@ function openEdit(id){
   f.type.value=w.type||'word';f.tags.value=(w.tags||[]).join(', ');f.notes.value=w.notes||'';
   if(!id&&activeTags.size)f.tags.value=[...activeTags].join(', ');
   $('editTitle').textContent=id?'Edit entry':'Add entry';
+  $('editDictHint').hidden=!!id;
   $('btnDelete').style.display=id?'':'none';
   $('dEdit').showModal();f.jp.focus();
 }
