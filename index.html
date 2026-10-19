@@ -154,6 +154,21 @@ dialog.wide form{padding:14px}
 .flash.compact .f-jp{font-size:40px}
 #studyPad{margin:12px 0}
 #studyPad .wp-box{width:max(200px,min(100%,calc(100vh - 430px),440px));width:max(200px,min(100%,calc(100dvh - 430px),440px))}
+/* dictionary */
+#dictBox{margin-top:18px}
+.dict-head{display:flex;justify-content:space-between;align-items:flex-end;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
+.dict-head .section-title{margin:0}
+.dict-opts{display:flex;gap:8px 14px;flex-wrap:wrap;flex:1 1 260px;justify-content:flex-end}
+.dict-tag{display:flex;align-items:center;gap:6px;font-size:13px;flex:1 1 200px;max-width:300px;white-space:nowrap}
+.dict-tag input,.dict-tag select{padding:6px 9px;font-size:14px;min-width:0;width:100%}
+.dict-card{cursor:default}
+.dict-card:hover{border-color:var(--line)}
+.dict-senses{color:var(--muted);font-size:14px}
+.dict-senses .sense{margin-right:8px}
+.dict-senses b{color:var(--ink);font-weight:600;font-size:12px}
+.dict-added{color:#3fa35a;font-size:13px;font-weight:600;align-self:start;padding-top:6px;white-space:nowrap}
+.dict-credit{margin-top:10px;font-size:12px}
+.dict-credit a{color:inherit}
 /* study cards */
 .f-label{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .f-row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
@@ -237,7 +252,7 @@ dialog.wide form{padding:14px}
   <section id="words">
     <div class="bar">
       <div class="search">
-        <input id="q" type="search" placeholder="Search: English, kana, kanji, or romaji (neko → ねこ)" autocomplete="off">
+        <input id="q" type="search" placeholder="Search your words and the dictionary" autocomplete="off">
         <button class="btn primary" onclick="openEdit()">+ Add</button>
       </div>
       <div class="row">
@@ -248,6 +263,17 @@ dialog.wide form{padding:14px}
       <div class="row" id="tagChips"></div>
     </div>
     <div class="list" id="list"></div>
+    <section id="dictBox" hidden>
+      <div class="dict-head">
+        <div class="section-title">From the dictionary</div>
+        <div class="dict-opts">
+          <label class="dict-tag">Tag words I add <input id="dictTag" placeholder="e.g. Section 1 Unit 2" list="tagList" autocomplete="off"></label>
+          <label class="dict-tag">Write as <select id="dictSpell"><option value="usual">Usual spelling (寿司)</option><option value="kana">Kana only (すし)</option></select></label>
+        </div>
+      </div>
+      <div class="list" id="dictList"></div>
+      <p class="hint dict-credit">Dictionary: <a href="https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project" target="_blank" rel="noopener">JMdict</a>, © <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noopener">EDRDG</a>, used under CC BY-SA 4.0.</p>
+    </section>
     <div class="foot">
       <button class="btn" onclick="openBulk()">Bulk add from notebook</button>
       <button class="btn" onclick="exportData()">Export backup</button>
@@ -461,6 +487,7 @@ function matcher(q){
   return w=>{const h=norm([w.jp,w.reading,w.meaning,(w.tags||[]).join(' '),w.notes].join(' \u0001 '));return h.includes(nq)||(kq&&(h.includes(kq)||loose(h).includes(lq)))};
 }
 function render(){
+  if(typeof renderDict==='function')renderDict(); // dictionary results below your words (dictionary.js)
   const tags=allTags();
   activeTags.forEach(t=>{if(!tags.includes(t))activeTags.delete(t)});
   $('tagChips').innerHTML=tags.map(t=>`<button class="chip ${activeTags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
@@ -474,7 +501,7 @@ function render(){
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
   if(!words.length){
-    $('list').innerHTML=`<div class="empty"><p>Your notebook is empty.</p><button class="btn primary" onclick="openEdit()">Add your first word</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
+    $('list').innerHTML=`<div class="empty"><p>Your notebook is empty.</p><p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p><button class="btn primary" onclick="openEdit()">Add your first word</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
     return;
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
@@ -954,6 +981,7 @@ document.body.dataset.state=CLOUD?'loading':'in';
 render();renderKana();
 {let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}showTab(['kana','words','study'].includes(t)?t:'kana')}
 </script>
+<script src="dictionary.js"></script>
 <script type="module" src="cloud.js"></script>
 <script>
 // Layout diagnostics: open the site with ?debug to see what's wider than the screen (outlined in red)

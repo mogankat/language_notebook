@@ -75,5 +75,9 @@ allow read, write: if request.auth != null && request.auth.uid == uid
 
 - `cloud.js` holds all sync code; `index.html` works without it (local-only mode).
 - `make-kana-audio.py` regenerates `audio/kana/` with the macOS Kyoko voice.
+- `dict/jmdict-common.json` is the dictionary searched on the Words tab (~22,600 common words from
+  JMdict, © EDRDG, CC BY-SA 4.0). To update it, download `jmdict-eng-common-*.json.tgz` from
+  <https://github.com/scriptin/jmdict-simplified/releases>, extract it, and run
+  `python3 build-dictionary.py path/to/jmdict-eng-common-*.json`.
 - To test sync locally without a real project, run the Firebase emulators (`npx firebase-tools emulators:start --only auth,firestore --project demo-notebook`)
   and set `FIREBASE_CONFIG = { apiKey: 'demo-key', authDomain: 'localhost', projectId: 'demo-notebook', emulator: true }`.
