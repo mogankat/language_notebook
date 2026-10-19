@@ -71,16 +71,30 @@ allow read, write: if request.auth != null && request.auth.uid == uid
   && request.auth.token.email in ['you@example.com', 'your-wife@example.com'];
 ```
 
+## Sharing with friends
+
+Anyone with the link can create an account (Google or email) and gets their own private notebooks.
+- If you added the optional email rule above, add your friends' emails to it (or remove it).
+- You own the Firebase project, so you can see everyone's notebooks in the Firebase console. Worth telling friends.
+- The free Spark plan allows 50,000 reads and 20,000 writes a day. Opening the app reads each word in the
+  notebook once, so a group of friends with a few hundred words each is well within it. If it's ever exceeded,
+  saving pauses until the next day; switching to the Blaze plan (pay as you go, with a budget alert) removes the limit.
+
 ## Developer notes
 
 - `cloud.js` holds all sync code; `index.html` works without it (local-only mode).
-- `languages.js` holds everything language-specific (Japanese, French, Korean, German): names, voices,
+- `languages.js` holds everything language-specific (Japanese, Chinese, Korean, French, Spanish, German): names, voices,
   letter charts, Korean romanization and accent-free matching. The language is picked in the profile
   sidebar; `?lang=fr` in the URL also works. Firestore keeps Japanese at `users/{uid}/words` and the
-  others at `users/{uid}/langs/{fr|ko|de}/…` (the existing rules already cover both).
+  others at `users/{uid}/langs/{zh|ko|fr|es|de}/…` (the existing rules already cover both).
 - `make-kana-audio.py` regenerates `audio/kana/` with the macOS Kyoko voice;
-  `make-letter-audio.py` regenerates `audio/fr|de|ko/` (Thomas, Anna, Yuna) from the table in `languages.js`.
-- `dict/fr.json`, `dict/de.json`, `dict/ko.json` come from Wiktionary (via kaikki.org) ranked by
+  `make-letter-audio.py` regenerates `audio/fr|es|de|ko|zh/` (Thomas, Paulina, Anna, Yuna, Tingting) from the table in `languages.js`.
+- `dict/zh.json` comes from CC-CEDICT ranked by FrequencyWords: download
+  `https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz` (gunzip) and
+  `https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/zh_cn/zh_cn_50k.txt`, then
+  `python3 build-dictionary-cedict.py cedict_1_0_ts_utf-8_mdbg.txt zh_cn_50k.txt`.
+  Chinese stroke order and checking use Hanzi Writer data (Make Me a Hanzi, Arphic Public License), loaded per character.
+- `dict/fr.json`, `dict/es.json`, `dict/de.json`, `dict/ko.json` come from Wiktionary (via kaikki.org) ranked by
   FrequencyWords, both CC BY-SA 4.0. To rebuild one, download
   `https://kaikki.org/dictionary/French/kaikki.org-dictionary-French.jsonl` (or German, Korean) and
   `https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/fr/fr_50k.txt` (or de, ko), then run

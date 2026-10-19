@@ -13,9 +13,20 @@ const LANGS = {
     samples: [['猫', 'ねこ', 'cat', 'word', 'animals'], ['水', 'みず', 'water', 'word', 'Unit 1'], ['おはようございます', 'ohayou gozaimasu', 'good morning', 'phrase', 'greetings'],
       ['ありがとう', 'arigatou', 'thank you', 'phrase', 'greetings'], ['コーヒー', 'こーひー', 'coffee', 'word', 'food'], ['ごはん', 'gohan', 'rice; meal', 'word', 'food'], ['〜はどこですか', '~ wa doko desu ka', 'where is ~?', 'grammar', 'Unit 2']],
   },
+  zh: {
+    name: 'Chinese', native: '中文', tts: 'zh-CN', voice: /tingting|lili|yu-shu|lilian/i, voiceName: 'Tingting',
+    lettersTab: 'Pinyin', lettersWord: null, handwriting: true,
+    dict: 'dict/zh.json', dictSize: '15,000+',
+    dictCredit: '<a href="https://cc-cedict.org/wiki/" target="_blank" rel="noopener">CC-CEDICT</a> (MDBG) and <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, CC BY-SA 4.0.',
+    readingLabel: 'Pinyin', wordPlaceholder: '猫 / 你好 / 谢谢', readingPlaceholder: 'māo · mao1',
+    searchHint: 'English, pinyin or characters', sortLabel: 'Pinyin order',
+    bulkPlaceholder: '猫 | māo | cat\n你好 | hello\n谢谢 | xiè xie | thank you | Unit 1',
+    samples: [['猫', 'māo', 'cat', 'word', 'animals'], ['水', 'shuǐ', 'water', 'word', 'Unit 1'], ['你好', 'nǐ hǎo', 'hello', 'phrase', 'greetings'],
+      ['谢谢', 'xièxie', 'thank you', 'phrase', 'greetings'], ['咖啡', 'kāfēi', 'coffee', 'word', 'food']],
+  },
   fr: {
     name: 'French', native: 'Français', tts: 'fr-FR', voice: /thomas|amélie|amelie|audrey|marie|daniel/i, voiceName: 'Thomas',
-    lettersTab: 'Letters', lettersWord: 'special letters (é, ç, œ…)', handwriting: false, accents: ['é', 'è', 'ê', 'ë', 'à', 'â', 'ç', 'î', 'ï', 'ô', 'û', 'ù', 'œ', '’'],
+    latin: true, lettersTab: 'Letters', lettersWord: 'special letters (é, ç, œ…)', handwriting: false, accents: ['é', 'è', 'ê', 'ë', 'à', 'â', 'ç', 'î', 'ï', 'ô', 'û', 'ù', 'œ', '’'],
     dict: 'dict/fr.json', dictSize: '20,000+',
     dictCredit: '<a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a> via <a href="https://kaikki.org" target="_blank" rel="noopener">kaikki.org</a> and <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, CC BY-SA 4.0.',
     readingLabel: 'Pronunciation (optional)', wordPlaceholder: 'le chat / bonjour / s’il vous plaît', readingPlaceholder: '/ʃa/ · shah',
@@ -35,9 +46,20 @@ const LANGS = {
     samples: [['고양이', 'goyangi', 'cat', 'word', 'animals'], ['물', 'mul', 'water', 'word', 'Unit 1'], ['안녕하세요', 'annyeonghaseyo', 'hello', 'phrase', 'greetings'],
       ['감사합니다', 'gamsahamnida', 'thank you', 'phrase', 'greetings'], ['커피', 'keopi', 'coffee', 'word', 'food']],
   },
+  es: {
+    name: 'Spanish', native: 'Español', tts: 'es-MX', voice: /paulina|juan|mónica|monica|jorge|diego/i, voiceName: 'Paulina',
+    latin: true, lettersTab: 'Letters', lettersWord: 'special letters (ñ, á, ü…)', handwriting: false, accents: ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü', '¿', '¡'],
+    dict: 'dict/es.json', dictSize: '18,000+',
+    dictCredit: '<a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a> via <a href="https://kaikki.org" target="_blank" rel="noopener">kaikki.org</a> and <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, CC BY-SA 4.0.',
+    readingLabel: 'Pronunciation (optional)', wordPlaceholder: 'el gato / hola / por favor', readingPlaceholder: '/ˈɡato/',
+    searchHint: 'English or Spanish, accents optional', sortLabel: 'A–Z (Spanish)',
+    bulkPlaceholder: 'el gato | cat\nhola | hello\ngracias | thank you | | Unit 1',
+    samples: [['el gato', '/ˈɡato/', 'cat', 'word', 'animals'], ['el agua', '/ˈaɣwa/', 'water', 'word', 'Unit 1'], ['hola', '/ˈola/', 'hello', 'phrase', 'greetings'],
+      ['gracias', '/ˈɡɾasjas/', 'thank you', 'phrase', 'greetings'], ['el café', '/kaˈfe/', 'coffee', 'word', 'food']],
+  },
   de: {
     name: 'German', native: 'Deutsch', tts: 'de-DE', voice: /anna|petra|markus|helena|yannick/i, voiceName: 'Anna',
-    lettersTab: 'Letters', lettersWord: 'special letters (ä, ö, ü, ß)', handwriting: false, accents: ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'],
+    latin: true, lettersTab: 'Letters', lettersWord: 'special letters (ä, ö, ü, ß)', handwriting: false, accents: ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'],
     dict: 'dict/de.json', dictSize: '16,000+',
     dictCredit: '<a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a> via <a href="https://kaikki.org" target="_blank" rel="noopener">kaikki.org</a> and <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, CC BY-SA 4.0.',
     readingLabel: 'Pronunciation (optional)', wordPlaceholder: 'die Katze / guten Morgen', readingPlaceholder: '/ˈkatsə/',
@@ -47,7 +69,7 @@ const LANGS = {
       ['danke', '/ˈdaŋkə/', 'thank you', 'phrase', 'greetings'], ['der Kaffee', '/ˈkafe/', 'coffee', 'word', 'food']],
   },
 };
-const LANG_ORDER = ['ja', 'fr', 'ko', 'de'];
+const LANG_ORDER = ['ja', 'zh', 'ko', 'fr', 'es', 'de'];
 let LANG = 'ja';
 try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('jn.lang') || 'ja'; } catch {}
 if (!LANGS[LANG]) LANG = 'ja';
@@ -80,6 +102,42 @@ const LETTERS = /*LETTERS-JSON*/{
       {"k": "ㅖ", "r": "ye", "say": "예", "id": "ye"}, {"k": "ㅘ", "r": "wa", "say": "와", "id": "wa"}, {"k": "ㅙ", "r": "wae", "say": "왜", "id": "wae"},
       {"k": "ㅚ", "r": "oe", "say": "외", "id": "oe"}, {"k": "ㅝ", "r": "wo", "say": "워", "id": "wo"}, {"k": "ㅞ", "r": "we", "say": "웨", "id": "we"},
       {"k": "ㅟ", "r": "wi", "say": "위", "id": "wi"}, {"k": "ㅢ", "r": "ui", "say": "의", "id": "ui"}]}
+  ],
+  "zh": [
+    {"title": "Tones", "cols": 5, "items": [
+      {"k": "mā", "r": "1st: high, flat · 妈 mum", "say": "妈", "id": "tone1"}, {"k": "má", "r": "2nd: rising · 麻 hemp", "say": "麻", "id": "tone2"},
+      {"k": "mǎ", "r": "3rd: dips, then rises · 马 horse", "say": "马", "id": "tone3"}, {"k": "mà", "r": "4th: falling · 骂 scold", "say": "骂", "id": "tone4"},
+      {"k": "ma", "r": "neutral: light, short · 吗 (question)", "say": "吗", "id": "tone5"}]},
+    {"title": "Initials", "cols": 5, "items": [
+      {"k": "b", "r": "bō 波", "say": "波", "id": "i-b"}, {"k": "p", "r": "pō 坡", "say": "坡", "id": "i-p"}, {"k": "m", "r": "mō 摸", "say": "摸", "id": "i-m"},
+      {"k": "f", "r": "fó 佛", "say": "佛", "id": "i-f"}, {"k": "d", "r": "dé 得", "say": "得", "id": "i-d"}, {"k": "t", "r": "tè 特", "say": "特", "id": "i-t"},
+      {"k": "n", "r": "nà 那", "say": "那", "id": "i-n"}, {"k": "l", "r": "lā 拉", "say": "拉", "id": "i-l"}, {"k": "g", "r": "gē 哥", "say": "哥", "id": "i-g"},
+      {"k": "k", "r": "kē 科", "say": "科", "id": "i-k"}, {"k": "h", "r": "hē 喝", "say": "喝", "id": "i-h"}, {"k": "j", "r": "jī 鸡", "say": "鸡", "id": "i-j"},
+      {"k": "q", "r": "“ch” · qī 七", "say": "七", "id": "i-q"}, {"k": "x", "r": "“sh” · xī 西", "say": "西", "id": "i-x"}, {"k": "zh", "r": "zhī 知", "say": "知", "id": "i-zh"},
+      {"k": "ch", "r": "chī 吃", "say": "吃", "id": "i-ch"}, {"k": "sh", "r": "shī 诗", "say": "诗", "id": "i-sh"}, {"k": "r", "r": "rì 日", "say": "日", "id": "i-r"},
+      {"k": "z", "r": "“dz” · zī 资", "say": "资", "id": "i-z"}, {"k": "c", "r": "“ts” · cí 词", "say": "词", "id": "i-c"}, {"k": "s", "r": "sī 思", "say": "思", "id": "i-s"}]},
+    {"title": "Finals", "cols": 4, "items": [
+      {"k": "a", "r": "ā 啊", "say": "啊", "id": "f-a"}, {"k": "o", "r": "ó 哦", "say": "哦", "id": "f-o"}, {"k": "e", "r": "é 鹅", "say": "鹅", "id": "f-e"},
+      {"k": "i", "r": "yī 衣", "say": "衣", "id": "f-i"}, {"k": "u", "r": "wū 乌", "say": "乌", "id": "f-u"}, {"k": "ü", "r": "yú 鱼", "say": "鱼", "id": "f-v"},
+      {"k": "ai", "r": "ài 爱", "say": "爱", "id": "f-ai"}, {"k": "ei", "r": "běi 北", "say": "北", "id": "f-ei"}, {"k": "ao", "r": "hǎo 好", "say": "好", "id": "f-ao"},
+      {"k": "ou", "r": "gǒu 狗", "say": "狗", "id": "f-ou"}, {"k": "an", "r": "ān 安", "say": "安", "id": "f-an"}, {"k": "en", "r": "ēn 恩", "say": "恩", "id": "f-en"},
+      {"k": "ang", "r": "áng 昂", "say": "昂", "id": "f-ang"}, {"k": "eng", "r": "lěng 冷", "say": "冷", "id": "f-eng"}, {"k": "ong", "r": "hóng 红", "say": "红", "id": "f-ong"},
+      {"k": "er", "r": "èr 二", "say": "二", "id": "f-er"}]}
+  ],
+  "es": [
+    {"title": "Special letters", "cols": 4, "items": [
+      {"k": "á", "r": "stressed “a” · está", "say": "está", "id": "a-acute"}, {"k": "é", "r": "stressed “e” · café", "say": "café", "id": "e-acute"},
+      {"k": "í", "r": "stressed “ee” · día", "say": "día", "id": "i-acute"}, {"k": "ó", "r": "stressed “o” · adiós", "say": "adiós", "id": "o-acute"},
+      {"k": "ú", "r": "stressed “oo” · menú", "say": "menú", "id": "u-acute"}, {"k": "ñ", "r": "“ny” · niño", "say": "niño", "id": "enye"},
+      {"k": "ü", "r": "“w” sound · pingüino", "say": "pingüino", "id": "u-umlaut"}, {"k": "¿", "r": "starts a question · ¿Qué?", "say": "¿Qué?", "id": "question"},
+      {"k": "¡", "r": "starts an exclamation · ¡Hola!", "say": "¡Hola!", "id": "exclamation"}]},
+    {"title": "Letter combinations", "cols": 4, "items": [
+      {"k": "ll", "r": "“y” · llamar", "say": "llamar", "id": "ll"}, {"k": "rr", "r": "rolled r · perro", "say": "perro", "id": "rr"},
+      {"k": "r", "r": "tapped r · pero", "say": "pero", "id": "r"}, {"k": "ch", "r": "“ch” · chico", "say": "chico", "id": "ch"},
+      {"k": "j", "r": "throaty “h” · jamón", "say": "jamón", "id": "j"}, {"k": "h", "r": "silent · hola", "say": "hola", "id": "h"},
+      {"k": "z", "r": "“s” · zapato", "say": "zapato", "id": "z"}, {"k": "ce ci", "r": "“s” · cine", "say": "cine", "id": "ce"},
+      {"k": "ge gi", "r": "throaty “h” · gente", "say": "gente", "id": "ge"}, {"k": "qu", "r": "“k” · queso", "say": "queso", "id": "qu"},
+      {"k": "gu", "r": "“g” before e/i · guitarra", "say": "guitarra", "id": "gu"}, {"k": "v", "r": "like “b” · vaca", "say": "vaca", "id": "v"}]}
   ],
   "fr": [
     {"title": "Special letters", "cols": 4, "items": [
@@ -124,7 +182,7 @@ const fold = s => String(s || '').toLowerCase().replace(/ß/g, 'ss').replace(/œ
   .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’`´]/g, "'");
 // German typed without umlauts: mueller → muller (fold already turns ü into u)
 const collapseUmlauts = s => s.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
-const ARTICLE = /^(le|la|les|l'|l’|un|une|des|der|die|das|ein|eine|einen|dem|den)\s*/i;
+const ARTICLE = /^(le|la|les|l'|l’|un|une|des|der|die|das|ein|eine|einen|dem|den|el|los|las|unos|unas)\s*/i;
 const stripArticle = s => String(s || '').replace(ARTICLE, '');
 
 // Korean: Hangul → Revised Romanization (with the common sound changes), for search and readings
@@ -169,3 +227,25 @@ function hangulJamo(s) {
 }
 // Loose romanization for search: g/k, d/t, b/p, r/l and apostrophes don't matter
 const looseRoman = s => s.toLowerCase().replace(/[^a-z]/g, '').replace(/k/g, 'g').replace(/t/g, 'd').replace(/p/g, 'b').replace(/l/g, 'r');
+
+// Chinese: "ni3 hao3" → "nǐ hǎo" (CC-CEDICT style tone numbers), and toneless pinyin for search
+const TONE_MARKS = { a: 'āáǎà', e: 'ēéěè', i: 'īíǐì', o: 'ōóǒò', u: 'ūúǔù', 'ü': 'ǖǘǚǜ' };
+function pinyinMarks(s) {
+  return String(s || '').split(/\s+/).map(syl => {
+    const m = syl.match(/^([a-zA-ZüÜ:]+)([1-5])$/);
+    if (!m) return syl;
+    const base = m[1].replace(/u:|v/g, 'ü').replace(/U:|V/g, 'Ü'), tone = +m[2];
+    if (tone === 5) return base;
+    const low = base.toLowerCase();
+    // tone mark goes on a or e; on the o of "ou"; otherwise on the last vowel
+    let i = low.indexOf('a');
+    if (i < 0) i = low.indexOf('e');
+    if (i < 0 && low.includes('ou')) i = low.indexOf('o');
+    if (i < 0) for (let k = low.length - 1; k >= 0; k--) if ('aeiouü'.includes(low[k])) { i = k; break; }
+    if (i < 0) return base;
+    const mark = TONE_MARKS[low[i]][tone - 1];
+    return base.slice(0, i) + (base[i] !== low[i] ? mark.toUpperCase() : mark) + base.slice(i + 1);
+  }).join(' ');
+}
+// "nǐ hǎo", "ni3 hao3", "nihao", "lü"/"lv" → "nihao" / "lu"
+const plainPinyin = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/u:|v/g, 'u').replace(/[^a-z]/g, '');

@@ -120,7 +120,7 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 .wp-slots .slot{flex:none}
 .wp-slots .slot.ok{border-color:#3fa35a;color:#3fa35a}
 .wp-slots .slot.bad{border-color:var(--accent);color:var(--accent)}
-.wp-guide path.bad{stroke-width:7;opacity:1}
+.wp-guide path.bad{stroke-width:calc(var(--sw,3.2) * 2.2);opacity:1}
 .wp-box.has-bad .nums{display:block}
 .wp-slots .slot{min-width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font:inherit;font-size:18px;cursor:pointer;padding:0 6px}
 .wp-slots .slot.inked{color:var(--ink);background:var(--chip)}
@@ -131,9 +131,9 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 .wp-box canvas{z-index:1;touch-action:none;cursor:crosshair}
 .wp-grid path{fill:none;stroke:var(--line);stroke-width:.7;stroke-dasharray:2.5 2.5}
 .wp-guide{z-index:0;color:var(--muted);opacity:0;pointer-events:none;transition:opacity .15s}
-.wp-guide path{fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.wp-guide path{fill:none;stroke:currentColor;stroke-width:var(--sw,3.2);stroke-linecap:round;stroke-linejoin:round}
 .wp-guide .glyph{fill:currentColor}
-.wp-guide .nums{display:none;font-size:8px;fill:var(--accent)}
+.wp-guide .nums{display:none;font-size:var(--nf,8px);fill:var(--accent)}
 .wp-box.trace .wp-guide{opacity:.28}
 .wp-box.checked .wp-guide,.wp-box.order .wp-guide{z-index:2;opacity:.7;color:var(--accent)}
 .wp-box.order .wp-guide{opacity:1}
@@ -264,7 +264,7 @@ body.drawer-open #drawerBack{opacity:1}
   <section id="signin">
     <div class="signin-card">
       <h2>Sign in to your notebook</h2>
-      <p class="hint">Each person has their own dictionary, notes and progress, synced across your Mac, iPhone and iPad.</p>
+      <p class="hint">Create a free account to keep your own notebooks for Japanese, Chinese, Korean, French, Spanish and German, synced across all your devices.</p>
       <button type="button" class="btn primary big" onclick="app.onGoogle?.()">Continue with Google</button>
       <div class="or">or use email</div>
       <form id="emailForm">
@@ -520,9 +520,13 @@ function looseKana(s){let o='',pv='';for(const ch of s.replace(/は/g,'わ').rep
 function matcher(q){
   q=q.trim(); if(!q) return()=>true;
   const text=w=>[w.jp,w.reading,w.meaning,(w.tags||[]).join(' '),w.notes].join(' \u0001 ');
-  if(LANG==='fr'||LANG==='de'){ // accents, case and umlaut spellings don't matter
-    const fq=fold(q),cq=collapseUmlauts(fq);
-    return w=>{const h=fold(text(w));return h.includes(fq)||collapseUmlauts(h).includes(cq)};
+  if(L.latin){ // accents, case and (German) umlaut spellings don't matter
+    const fq=fold(q),cq=LANG==='de'?collapseUmlauts(fq):fq;
+    return w=>{const h=fold(text(w));return h.includes(fq)||(LANG==='de'&&collapseUmlauts(h).includes(cq))};
+  }
+  if(LANG==='zh'){ // characters, or pinyin with or without tones (nihao, ni3hao3, nǐ hǎo)
+    const lq=q.toLowerCase(),pq=/[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]/i.test(q)&&!/[\u3400-\u9fff]/.test(q)?plainPinyin(q):'';
+    return w=>text(w).toLowerCase().includes(lq)||(pq&&plainPinyin(w.reading).includes(pq));
   }
   if(LANG==='ko'){ // Hangul, or romanization typed loosely (gamsahapnida, kamsahamnida…)
     const lq=q.toLowerCase(),rq=/[a-z]/.test(lq)&&!/[\uac00-\ud7a3]/.test(lq)?looseRoman(lq):'';
@@ -544,7 +548,7 @@ function render(){
   const m=matcher($('q').value), type=$('fType').value, sort=$('fSort').value;
   let rows=words.filter(w=>(!type||w.type===type)&&[...activeTags].every(t=>(w.tags||[]).includes(t))&&m(w));
   const cmp={new:(a,b)=>b.added-a.added,old:(a,b)=>a.added-b.added,
-    jp:LANG==='ja'?(a,b)=>norm(a.reading||a.jp).localeCompare(norm(b.reading||b.jp),'ja'):(a,b)=>stripArticle(a.jp).localeCompare(stripArticle(b.jp),LANG,{sensitivity:'base'}),
+    jp:LANG==='ja'?(a,b)=>norm(a.reading||a.jp).localeCompare(norm(b.reading||b.jp),'ja'):LANG==='zh'?(a,b)=>(plainPinyin(a.reading)||a.jp).localeCompare(plainPinyin(b.reading)||b.jp):(a,b)=>stripArticle(a.jp).localeCompare(stripArticle(b.jp),LANG,{sensitivity:'base'}),
     en:(a,b)=>a.meaning.localeCompare(b.meaning)}[sort];
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
@@ -595,6 +599,7 @@ $('fEdit').addEventListener('submit',e=>{
   if(e.submitter?.value!=='save')return;
   const f=e.target, data={jp:f.jp.value.trim(),reading:f.reading.value.trim(),meaning:f.meaning.value.trim(),type:f.type.value,tags:parseTags(f.tags.value),notes:f.notes.value.trim()};
   // "ごはん | gohan" typed into the Japanese field: split off the reading (bulk-add habit)
+  if(LANG==='zh'&&/[1-5]/.test(data.reading))data.reading=pinyinMarks(data.reading);
   const parts=data.jp.split(/\s*[|｜]\s*/);
   if(parts.length>1&&parts[0]){data.jp=parts[0];if(!data.reading)data.reading=parts.slice(1).join(' ').trim()}
   let id=editingId;
@@ -698,12 +703,13 @@ $('kanaGrids').addEventListener('click',e=>{const b=e.target.closest('.k');if(b&
 // Words in the notebook that use a letter (Korean letters live inside syllable blocks)
 function wordsWithLetter(ch){
   if(LANG==='ko')return words.filter(w=>hangulJamo(w.jp).includes(ch));
-  if(LANG==='fr'||LANG==='de')return words.filter(w=>w.jp.toLowerCase().includes(ch));
+  if(L.latin)return words.filter(w=>w.jp.toLowerCase().includes(ch));
+  if(LANG==='zh')return words.filter(w=>plainPinyin(w.reading).includes(plainPinyin(ch)));
   return words.filter(w=>(w.jp+' '+w.reading).includes(ch));
 }
 function openChar(ch,r){
   $('cChar').textContent=ch;$('cChar').lang=LANG;$('cRomaji').textContent=r;$('cChar').onclick=$('cPlay').onclick=()=>sayKana(ch);
-  $('cWrite').hidden=!L.handwriting;
+  $('cWrite').hidden=!L.handwriting||LANG==='zh'; // the Pinyin tab is sounds, not characters to write
   const draw=()=>{$('cStatus').innerHTML=['new','learning','known'].map(s=>`<button type="button" class="btn ${(chars[ch]||'new')===s?'on':''}" data-s="${s}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')};
   draw();
   $('cStatus').onclick=e=>{const s=e.target.dataset.s;if(!s)return;if(s==='new')delete chars[ch];else chars[ch]=s;persist({chars:[ch]});draw();renderKana()};
@@ -719,7 +725,12 @@ function openChar(ch,r){
 /* ---------- pronunciation (uses the browser's built-in voice for the current language) ---------- */
 let jaVoice=null; // the voice for the current language (name kept from when this was Japanese-only)
 const langPrefix=new RegExp('^'+LANG,'i');
-function pickVoice(){const v=speechSynthesis.getVoices().filter(v=>langPrefix.test(v.lang));jaVoice=v.find(v=>L.voice.test(v.name))||v.find(v=>v.localService)||v[0]||null}
+function pickVoice(){
+  const v=speechSynthesis.getVoices().filter(v=>langPrefix.test(v.lang));
+  // prefer the language's own region (es-MX, zh-CN) over others (es-ES, zh-TW)
+  const exact=v.filter(x=>x.lang.replace('_','-').toLowerCase()===L.tts.toLowerCase());
+  jaVoice=[...exact,...v].find(x=>L.voice.test(x.name))||exact.find(x=>x.localService)||exact[0]||v.find(x=>x.localService)||v[0]||null;
+}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function speak(text){
   text=String(text||'').replace(/[〜~]/g,'').trim();
@@ -812,7 +823,7 @@ function skillsFor(kind,w){
 function buildDeck(){
   const list=tagWords(),items=[];
   for(const w of list){const sk=skillsFor('word',w);if(sk.length)items.push({kind:'word',id:w.id,skills:sk})}
-  if(study.kana)for(const ch of kanaIn(list)){const sk=skillsFor('kana');if(sk.length)items.push({kind:'kana',ch,skills:sk})}
+  if(study.kana&&L.lettersWord)for(const ch of kanaIn(list)){const sk=skillsFor('kana');if(sk.length)items.push({kind:'kana',ch,skills:sk})}
   return items;
 }
 
@@ -930,7 +941,7 @@ function checkTyped(typed,answerText){
   const clean=s=>String(s).normalize('NFC').replace(/[’`´]/g,"'").replace(/\s+/g,' ').trim();
   const a=clean(typed),b=clean(answerText);
   if(!a)return{ok:false,note:'Nothing typed'};
-  if(a===b||(LANG==='fr'&&a.toLowerCase()===b.toLowerCase()))return{ok:true};
+  if(a===b||((LANG==='fr'||LANG==='es')&&a.toLowerCase()===b.toLowerCase()))return{ok:true};
   if(LANG==='de'&&a.replace(/ß/g,'ss')===b.replace(/ß/g,'ss'))return{ok:true}; // Strasse for Straße is fine (Swiss spelling)
   if(a.toLowerCase()===b.toLowerCase())return{ok:false,note:'Almost: check the capital letters (German nouns start with a capital)'};
   if(fold(a)===fold(b))return{ok:false,note:'Almost: check the accents'+(LANG==='de'?' and umlauts':'')};
@@ -960,6 +971,7 @@ function giveUp(){
    transcripts accepted before with "It was right" (e.g. 猫 for a word saved only as ねこ) */
 const speechForm=s=>LANG==='ja'?looseKana(norm(s).replace(/[^\u3041-\u3096\u30fc\u3005\u3400-\u9fff]/g,''))
   :LANG==='ko'?String(s).replace(/[^\uac00-\ud7a3]/g,'')
+  :LANG==='zh'?String(s).replace(/[^\u3400-\u9fff]/g,'')
   :fold(stripArticle(fold(s))).replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim(); // fr/de: articles and accents don't matter when heard
 function spokenMatches(said,w){
   said=speechForm(said);if(!said)return false;
@@ -1125,18 +1137,20 @@ function applyLanguage(){
   $('langBadge').textContent=L.native;$('langBadge').lang=LANG;
   $('tabKana').textContent=L.lettersTab;
   $('scriptTabs').hidden=LANG!=='ja';
-  $('legendTip').textContent=LANG==='ja'?'· tap a character for details':'· tap a letter for details';
+  $('legendTip').textContent=LANG==='ja'?'· tap a character for details':LANG==='zh'?'· tap one to hear it':'· tap a letter for details';
+  $('studyKana').closest('label').hidden=!L.lettersWord;
   $('searchHint').innerHTML=`Tip: type a word here (${L.searchHint}) to look it up in the built-in dictionary of ${L.dictSize} words, then tap <b>+ Add</b> on the one you want.`;
   $('sortLangOpt').textContent=L.sortLabel;
   $('dictCredit').innerHTML='Dictionary: '+L.dictCredit;
-  $('dictSpellWrap').hidden=LANG!=='ja';
+  $('dictSpellWrap').hidden=LANG!=='ja'&&LANG!=='zh';
+  if(LANG==='zh')$('dictSpell').innerHTML='<option value="usual">Simplified (猫)</option><option value="trad">Traditional (貓)</option>';
   $('fJpLabel').textContent=L.name;
   const f=$('fEdit');f.jp.placeholder=L.wordPlaceholder;f.reading.placeholder=L.readingPlaceholder;f.jp.lang=f.reading.lang=LANG;
   $('fReadLabel').textContent=L.readingLabel;
   $('bulkText').placeholder=L.bulkPlaceholder;$('bulkText').lang=LANG;
   $('studyKanaLabel').textContent=`Also include the ${L.lettersWord} used in these words`;
   $('writeNote').textContent=L.handwriting?(LANG==='ko'?'Write it by hand, then compare with the correct letters and mark yourself.':'Write it by hand. Your strokes are checked automatically.')
-    :`Type it, including ${LANG==='fr'?'accents and the article (le, la, l’)':'umlauts, capitals and the article (der, die, das)'}. Checked automatically.`;
+    :`Type it, including ${LANG==='fr'?'accents and the article (le, la, l’)':LANG==='es'?'accents and the article (el, la)':'umlauts, capitals and the article (der, die, das)'}. Checked automatically.`;
   $('dirLangBtn').textContent=L.name;
   $('studyAudioLabel').textContent=`Play ${L.name} audio automatically`;
   $('typeIn').lang=LANG;

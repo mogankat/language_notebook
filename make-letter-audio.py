@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate audio/<lang>/<id>.m4a for the Letters / Hangul tab of French, German and Korean,
-using the macOS voices (Thomas, Anna, Yuna). Reads the LETTERS table in languages.js.
+"""Generate audio/<lang>/<id>.m4a for the Letters / Hangul / Pinyin tab of French, German, Korean,
+Spanish and Chinese, using the macOS voices (Thomas, Anna, Yuna, Paulina, Tingting). Reads the LETTERS table in languages.js.
 Re-run after changing that table. (Japanese kana: make-kana-audio.py.)"""
 import json, os, re, subprocess
 
-VOICES = {'fr': 'Thomas', 'de': 'Anna', 'ko': 'Yuna'}
+VOICES = {'fr': 'Thomas', 'de': 'Anna', 'ko': 'Yuna', 'es': 'Paulina', 'zh': 'Tingting'}
 here = os.path.dirname(os.path.abspath(__file__))
 src = open(os.path.join(here, 'languages.js'), encoding='utf-8').read()
 letters = json.loads(re.search(r'/\*LETTERS-JSON\*/(.*?)/\*END-LETTERS-JSON\*/', src, re.S).group(1))

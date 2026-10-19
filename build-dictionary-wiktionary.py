@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build dict/<lang>.json (French, German or Korean) for the Words tab dictionary.
+"""Build dict/<lang>.json (French, German, Spanish or Korean) for the Words tab dictionary.
 
 Sources (download both, then run this script):
   - Wiktionary entries extracted by kaikki.org (CC BY-SA 4.0 / GFDL):
@@ -59,7 +59,7 @@ OVERRIDES = {'ko': {
 }}
 
 def with_article(lang, word, gender, ipa=''):
-    if re.match(r"^(le|la|les|l'|l’|un|une|des|der|die|das|ein|eine) ", word, re.I) or re.match(r"^l['’]", word, re.I):
+    if re.match(r"^(le|la|les|l'|l’|un|une|des|der|die|das|ein|eine|el|los|las|unos|unas) ", word, re.I) or re.match(r"^l['’]", word, re.I):
         return word  # phrase already starts with an article
     if lang == 'fr':
         if gender == 'pl':
@@ -72,7 +72,16 @@ def with_article(lang, word, gender, ipa=''):
         art = {'m': 'der', 'f': 'die', 'n': 'das', 'pl': 'die'}.get(gender)
         if art:
             return f'{art} {word}'
+    if lang == 'es':
+        if gender == 'm':
+            return 'el ' + word
+        if gender == 'f':  # el agua, el hambre: feminine nouns starting with a stressed a take "el"
+            return ('el ' if word.lower() in EL_FEMININE else 'la ') + word
+        if gender == 'pl':
+            return 'los ' + word
     return word
+
+EL_FEMININE = set('agua águila alma arma hambre área hacha aula ala ancla arpa asa ave hada habla asma acta ama alga ánima'.split())
 
 def reading_of(lang, e):
     if lang == 'ko':
@@ -108,6 +117,12 @@ def shorten(gloss):
 H_ASPIRE = set('''hache haie haine hall hamac hameau hamster hanche handicap hangar hareng haricot harpe hasard hâte
 hausse haut hauteur havre hérisson héros hibou hockey homard honte hors-d’œuvre houx hublot huée huit hurlement hutte
 hiérarchie hockey hollande hongrie hall halte hamburger hantise harnais hère hernie hêtre hiboux hippie hit hobby'''.split())
+
+FUNCTION_POS = {'pron', 'det', 'article', 'prep', 'conj', 'particle', 'adv', 'verb', 'num', 'postp'}
+NO_ARTICLE = {
+    'fr': set('merci bonjour bonsoir salut pardon bravo adieu bienvenue félicitations santé'.split()),
+    'es': set('gracias adiós perdón salud hola bravo enhorabuena felicidades bienvenido'.split()),
+}
 
 PHRASE_POS = {'phrase', 'intj', 'noun', 'verb', 'adj'}  # multi-word entries worth keeping (not "de la")
 IPA_VOWEL = re.compile(r'^[/\[]?[aeiouyɛɔøœəɑɐɪʊʏ]')
@@ -157,10 +172,13 @@ def build(lang, kaikki, freq):
         g = gender_of(e) if pos == 'noun' else ''
         item = target.setdefault(w, {'rank': r, 'senses': [], 'gender': '', 'reading': '', 'phrase': is_phrase, 'pos': set()})
         item['rank'] = min(item['rank'], r)
-        item['senses'] += senses
+        item['senses'] += [(pos, s) for s in senses]
         item['pos'].add(pos)
         item['gender'] = item['gender'] or g
         item['reading'] = item['reading'] or reading_of(lang, e)
+    if lang in ('fr', 'es'):  # "A", "Paris"-style capitalised twins and single letters borrow common words' frequency
+        for w in [w for w in words if (w[:1].isupper() and w.lower() in words) or (len(w) == 1 and w.isalpha())]:
+            del words[w]
     if lang == 'de':  # "Ich"/"Du" nouns borrow the frequency of the pronouns ich/du: drop them
         for w in [w for w, it in words.items() if w[:1].isupper() and it['pos'] == {'noun'}]:
             twin = words.get(w.lower())
@@ -169,16 +187,19 @@ def build(lang, kaikki, freq):
     for w, meaning in OVERRIDES.get(lang, {}).items():
         for items in (words, phrases):
             if w in items:
-                items[w]['senses'].insert(0, [meaning])
+                items[w]['senses'].insert(0, ('override', [meaning]))
     def pack(items, limit):
         out = []
         for w, it in sorted(items.items(), key=lambda kv: kv[1]['rank'])[:limit]:
+            # Article for nouns, unless the word is also a function word or verb ("manger", "être")
+            # or a greeting that's really used on its own ("merci", "gracias")
+            noun = 'noun' in it['pos'] and not it['pos'] & FUNCTION_POS and w.lower() not in NO_ARTICLE.get(lang, ())
+            gender = it['gender'] if noun else ''
+            ordered = sorted(it['senses'], key=lambda ps: 0 if ps[0] == 'override' else 1 if noun and ps[0] == 'noun' else 2) if noun else it['senses']
             senses = []
-            for s in it['senses']:
+            for _, s in ordered:
                 if s not in senses:
                     senses.append(s)
-            # Article only for words that are always nouns ("le chat", but not "manger" or "merci")
-            gender = it['gender'] if it['pos'] == {'noun'} else ''
             out.append([with_article(lang, w, gender, it['reading']), w, it['reading'], senses[:MAX_SENSES],
                         2 if it['phrase'] else 0, gender])
         return out
@@ -186,7 +207,7 @@ def build(lang, kaikki, freq):
             'words': pack(words, MAX_WORDS) + pack(phrases, MAX_PHRASES)}
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4 or sys.argv[1] not in ('fr', 'de', 'ko'):
+    if len(sys.argv) != 4 or sys.argv[1] not in ('fr', 'de', 'ko', 'es'):
         sys.exit(__doc__)
     lang = sys.argv[1]
     data = build(lang, sys.argv[2], sys.argv[3])

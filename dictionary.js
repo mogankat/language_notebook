@@ -3,7 +3,9 @@
    - Japanese: dict/jmdict-common.json, built by build-dictionary.py from JMdict, the property of the
      Electronic Dictionary Research and Development Group (EDRDG), used under its licence (CC BY-SA 4.0).
      Entries: [kanji forms, kana forms, senses (lists of English glosses), flags (1 = usually kana, 2 = phrase)]
-   - French, German, Korean: dict/<lang>.json, built by build-dictionary-wiktionary.py from Wiktionary
+   - Chinese: dict/zh.json, built by build-dictionary-cedict.py from CC-CEDICT (CC BY-SA 4.0).
+     Entries: [simplified, traditional, pinyin (tone marks), senses, flags (2 = idiom), measure word]
+   - French, Spanish, German, Korean: dict/<lang>.json, built by build-dictionary-wiktionary.py from Wiktionary
      (via kaikki.org) and FrequencyWords, both CC BY-SA 4.0.
      Entries: [display (with article), lemma, reading (IPA or romanization), senses, flags (2 = phrase), gender] */
 
@@ -14,7 +16,11 @@ function loadDictionary() {
     .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(d => {
       // Pre-normalise once so each search is a fast scan
-      DICT = d.words.map(LANG === 'ja' ? e => ({
+      DICT = d.words.map(LANG === 'zh' ? e => ({
+        e, word: e[0], trad: e[1], reading: e[2], senses: e[3], phrase: !!(e[4] & 2), mw: e[5],
+        forms: [...new Set([e[0], e[1]])], pin: plainPinyin(e[2]),
+        glosses: e[3].map(sense => sense.map(g => g.toLowerCase())),
+      }) : LANG === 'ja' ? e => ({
         e, word: e[3] & 1 || !e[0].length ? e[1][0] : e[0][0], // how the word is usually written
         kana: e[1][0], senses: e[2], phrase: !!(e[3] & 2),
         forms: [...e[0], ...e[1]].map(norm),
@@ -55,6 +61,16 @@ function wordScore(d, q) {
     if (s < 95) d.loose.forEach((f, k) => { // e.g. koohii → コーヒー (same length beats こうひ)
       if (f === lk) s = Math.max(s, norm(d.e[1][k]).length === kana.length ? 95 : 90);
     });
+    return s;
+  }
+  if (LANG === 'zh') { // characters (simplified or traditional), or pinyin with or without tones
+    const hanzi = /[\u3400-\u9fff]/.test(q), f0 = hanzi ? q.replace(/\s+/g, '') : plainPinyin(q);
+    if (!f0) return 0;
+    for (const f of hanzi ? d.forms : [d.pin]) {
+      if (f === f0) s = Math.max(s, 100);
+      else if (f.startsWith(f0)) s = Math.max(s, 70 - Math.min(20, f.length - f0.length));
+      else if (hanzi && f.includes(f0)) s = Math.max(s, 35);
+    }
     return s;
   }
   // French/German: accents, case and the article don't matter; Korean: Hangul or loose romanization
@@ -117,6 +133,7 @@ function toRomaji(s) {
 }
 
 function inNotebook(d) {
+  if (LANG === 'zh') return words.some(w => d.forms.includes(w.jp));
   if (LANG === 'ja') {
     const forms = new Set([...d.e[0], ...d.e[1]].map(norm));
     return words.some(w => forms.has(norm(w.jp)));
@@ -138,7 +155,7 @@ function renderDict() {
   }
   dictShown = searchDict(q);
   $('dictList').innerHTML = dictShown.length ? dictShown.map((d, i) => {
-    const reading = LANG === 'ja' ? (d.kana !== d.word ? d.kana : '') : d.reading;
+    const reading = LANG === 'ja' ? (d.kana !== d.word ? d.kana : '') : LANG === 'zh' && d.trad !== d.word ? `${d.reading} · ${d.trad}` : d.reading;
     const senses = d.senses.slice(0, 3).map((s, k) => `<span class="sense">${d.senses.length > 1 ? `<b>${k + 1}</b> ` : ''}${esc(s.join('; '))}</span>`).join(' ');
     const tag = d.phrase ? 'phrase' : GENDER[d.gender] || '';
     return `<div class="card dict-card">
@@ -150,7 +167,8 @@ function renderDict() {
 }
 
 // Short meaning for the notebook: drop dictionary asides like "(esp. cool or cold)" and long explanations
-const tidyGloss = g => g.replace(/\s*\((esp|e\.g|i\.e|usu|lit|orig|obs|oft|in ref)\.?[^)]*\)/gi, '').trim();
+const tidyGloss = g => g.replace(/\s*\((esp|e\.g|i\.e|usu|lit|orig|obs|oft|in ref)\.?[^)]*\)/gi, '')
+  .replace(/^\((loanword|coll\.|colloquial|informal|formal)\)\s*(?=\S)/i, '').trim(); // "(loanword) coffee" → "coffee"
 function shortMeaning(sense) {
   const gl = sense.map(tidyGloss).filter(Boolean);
   return [gl[0], ...gl.slice(1).filter(g => g.length <= 25)].slice(0, 3).join('; ');
@@ -158,6 +176,7 @@ function shortMeaning(sense) {
 
 function addFromDict(d) {
   let jp = d.word, reading = d.reading;
+  if (LANG === 'zh' && $('dictSpell').value === 'trad') jp = d.trad;
   if (LANG === 'ja') {
     if ($('dictSpell').value === 'kana') jp = d.kana;
     reading = /[㐀-鿿]/.test(jp) ? d.kana : toRomaji(jp); // kanji words get their kana; kana words get romaji
@@ -170,6 +189,8 @@ function addFromDict(d) {
     meaning !== first.join('; ') ? first.join('; ') : '',
     more.length ? 'Also: ' + more.map(s => s.join('; ')).join(' · ') : '',
     LANG === 'fr' && /^l’/.test(jp) && GENDER[d.gender] ? `Gender: ${GENDER[d.gender]}` : '',
+    LANG === 'zh' && d.mw ? `Measure word: ${d.mw}` : '',
+    LANG === 'zh' && d.trad !== d.word ? (jp === d.trad ? `Simplified: ${d.word}` : `Traditional: ${d.trad}`) : '',
   ].filter(Boolean).join('\n');
   const id = uid();
   words.push({ id, added: Date.now(), jp, reading, meaning, type: d.phrase ? 'phrase' : 'word', tags: parseTags($('dictTag').value), notes });

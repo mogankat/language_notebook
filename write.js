@@ -1,10 +1,13 @@
 /* Handwriting practice: write with a finger, mouse or Apple Pencil, check it against the real
    strokes, and watch the stroke order.
-   Stroke order data: KanjiVG by Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net),
-   fetched per character on demand. Without it (e.g. offline) the pad falls back to a font glyph
+   Stroke order data, fetched per character on demand:
+   - Japanese: KanjiVG by Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net)
+   - Chinese: Hanzi Writer data from Make Me a Hanzi, Arphic Public License (https://github.com/skishore/makemeahanzi) Without it (e.g. offline) the pad falls back to a font glyph
    and writing can't be checked automatically. */
 
 const KVG_BASE = 'https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@r20250816/kanji/';
+const HW_BASE = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/';
+const CHINESE = typeof LANG !== 'undefined' && LANG === 'zh'; // simplified characters need Hanzi Writer, not KanjiVG
 const kvgCache = new Map();
 // Kana, ー, 々 and kanji: the characters worth practising (skips ~, spaces, punctuation, romaji)
 // Korean Hangul syllables and letters are writable too (but have no stroke data to check against)
@@ -14,6 +17,21 @@ const writableChars = text => [...String(text || '')].filter(c => WRITABLE.test(
 
 function loadStrokes(ch) {
   if (!HAS_STROKE_DATA.test(ch)) return Promise.resolve(null);
+  if (!kvgCache.has(ch) && CHINESE) {
+    // Stroke centre lines ("medians") in a 1024 box with y pointing up from a baseline at 900
+    kvgCache.set(ch, fetch(HW_BASE + encodeURIComponent(ch) + '.json')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (!d?.medians?.length) return null;
+        const medians = d.medians.map(m => m.map(([x, y]) => [x, 900 - y]));
+        return {
+          box: 1024, medians,
+          paths: medians.map(m => 'M' + m.map(p => p.join(' ')).join(' L')),
+          nums: medians.map((m, k) => ({ n: String(k + 1), at: `matrix(1 0 0 1 ${m[0][0] - 40} ${m[0][1] - 25})` })),
+        };
+      })
+      .catch(() => { kvgCache.delete(ch); return null; }));
+  }
   if (!kvgCache.has(ch)) {
     const file = ch.codePointAt(0).toString(16).padStart(5, '0') + '.svg';
     kvgCache.set(ch, fetch(KVG_BASE + file)
@@ -55,7 +73,7 @@ function samplePath(d) {
 async function referenceStrokes(ch) {
   const data = await loadStrokes(ch);
   if (!data) return null;
-  data.samples ||= data.paths.map(samplePath);
+  data.samples ||= data.medians ? data.medians.map(m => resample(m.map(([x, y]) => [x / 1024, y / 1024]))) : data.paths.map(samplePath);
   return data.samples;
 }
 function resample(stroke) {
@@ -135,7 +153,9 @@ function createPad(root, { checkButton = true } = {}) {
       ${checkButton ? '<button type="button" class="btn primary" data-act="check">Check</button>' : ''}
     </div>
     <p class="wp-msg"></p>
-    <p class="wp-credit">Stroke order: <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> (CC BY-SA 3.0)</p>`;
+    <p class="wp-credit">${CHINESE
+      ? 'Stroke order: <a href="https://github.com/skishore/makemeahanzi" target="_blank" rel="noopener">Make Me a Hanzi</a> (Arphic Public License)'
+      : 'Stroke order: <a href="https://kanjivg.tagaini.net" target="_blank" rel="noopener">KanjiVG</a> (CC BY-SA 3.0)'}</p>`;
   const q = s => root.querySelector(s);
   const box = q('.wp-box'), canvas = q('canvas'), guide = q('.wp-guide'), ctx = canvas.getContext('2d');
   // ink[i] = strokes for character i; a stroke is a list of [x, y, pressure] in 0..1 box coordinates
@@ -202,10 +222,14 @@ function createPad(root, { checkButton = true } = {}) {
   async function drawGuide() {
     const ch = st.chars[st.i], token = ++st.token;
     stopOrder();
-    guide.innerHTML = `<text class="glyph" x="54.5" y="58" text-anchor="middle" dominant-baseline="middle" font-size="86">${esc(ch)}</text>`;
+    guide.setAttribute('viewBox', '0 0 109 109'); guide.style.removeProperty('--sw'); guide.style.removeProperty('--nf');
+    guide.innerHTML = `<text class="glyph" x="54.5" y="58" text-anchor="middle" dominant-baseline="middle" font-size="86" lang="${typeof LANG !== 'undefined' ? LANG : 'ja'}">${esc(ch)}</text>`;
     const data = await loadStrokes(ch);
     if (token !== st.token || !data) return;
     const bad = st.results[st.i]?.bad;
+    const box = data.box || 109; // stroke widths and labels scale with the data's box size
+    guide.setAttribute('viewBox', `0 0 ${box} ${box}`);
+    guide.style.setProperty('--sw', 3.2 * box / 109); guide.style.setProperty('--nf', `${8 * box / 109}px`);
     guide.innerHTML = data.paths.map((d, k) => `<path d="${esc(d)}"${k === bad ? ' class="bad"' : ''}/>`).join('') +
       `<g class="nums">${data.nums.map(n => `<text transform="${esc(n.at)}">${esc(n.n)}</text>`).join('')}</g>`;
   }
@@ -223,7 +247,7 @@ function createPad(root, { checkButton = true } = {}) {
     stopOrder(); st.order = true; update();
     let t = 300;
     for (const p of paths) {
-      const len = p.getTotalLength(), dur = Math.max(350, len * 10);
+      const len = p.getTotalLength(), dur = Math.max(350, len * 10 * 109 / (+guide.viewBox.baseVal.width || 109));
       p.style.transition = 'none'; p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
       st.timers.push(setTimeout(() => { p.style.transition = `stroke-dashoffset ${dur}ms linear`; p.style.strokeDashoffset = 0; }, t));
       t += dur + 200;
