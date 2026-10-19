@@ -9,6 +9,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}}
 :root[data-theme="dark"]{--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px;flex-wrap:wrap}
@@ -100,6 +101,43 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 #authMsg.err{color:var(--accent)}
 #loading{text-align:center;color:var(--muted);padding:60px 0}
 @media (hover:none){.kbd-hint{display:none}}
+/* writing pad */
+.wp{display:grid;gap:8px;user-select:none;-webkit-user-select:none}
+.wp-slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.wp-slots .slot{min-width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font:inherit;font-size:18px;cursor:pointer;padding:0 6px}
+.wp-slots .slot.inked{color:var(--ink);background:var(--chip)}
+.wp-slots .slot.cur{outline:2px solid var(--accent)}
+.wp-box{position:relative;width:min(100%,52vh,440px);aspect-ratio:1;margin:0 auto;background:var(--panel);border:2px solid var(--line);border-radius:12px;overflow:hidden;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.wp-box>*{position:absolute;inset:0;width:100%;height:100%}
+.wp-box canvas{z-index:1;touch-action:none;cursor:crosshair}
+.wp-grid path{fill:none;stroke:var(--line);stroke-width:.7;stroke-dasharray:2.5 2.5}
+.wp-guide{z-index:0;color:var(--muted);opacity:0;pointer-events:none;transition:opacity .15s}
+.wp-guide path{fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.wp-guide .glyph{fill:currentColor}
+.wp-guide .nums{display:none;font-size:8px;fill:var(--accent)}
+.wp-box.trace .wp-guide{opacity:.28}
+.wp-box.checked .wp-guide,.wp-box.order .wp-guide{z-index:2;opacity:.7;color:var(--accent)}
+.wp-box.order .wp-guide{opacity:1}
+.wp-box.order .nums{display:block}
+.wp-tools,.wp-nav{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.wp-tools .btn,.wp-nav .btn{padding:8px 12px}
+.wp-tools .btn.on{outline:2px solid var(--accent)}
+.wp-nav{justify-content:space-between}
+.wp-msg{margin:0;min-height:1.2em;text-align:center;font-size:13px;color:var(--muted)}
+.wp-credit{text-align:center;font-size:11px;color:var(--muted);margin:0}
+.wp-credit a{color:inherit}
+dialog.wide{width:min(560px,calc(100vw - 16px));max-height:calc(100dvh - 16px)}
+dialog.wide form{padding:14px}
+.w-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.w-head h2{font-size:22px}
+#wSub{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
+#wSub .btn{padding:4px 10px}
+.flash.compact{min-height:0;padding:16px 14px;margin:10px 0;cursor:default}
+.flash.compact .f-en{font-size:24px}
+.flash.compact .f-jp{font-size:40px}
+#studyPad{margin:12px 0}
+#studyPad .wp-box{width:min(100%,40vh,440px)}
 /* study */
 .study-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px;margin-bottom:8px}
 .progbar{height:4px;background:var(--chip);border-radius:2px;overflow:hidden}
@@ -118,7 +156,7 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 .check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink);margin-top:16px}
 .check input{width:auto}
 .done-score{font-size:48px;font-weight:600;text-align:center;margin-top:24px}
-@media (max-width:520px){.f-jp{font-size:40px}.f-en{font-size:24px}}
+@media (max-width:520px){.f-jp{font-size:40px}.f-en{font-size:24px}.wp-slots .slot{min-width:30px;height:30px;font-size:16px}}
 @media (max-width:520px){.two{grid-template-columns:1fr}.k b{font-size:22px}.jp{font-size:20px}}
 </style>
 </head>
@@ -184,11 +222,19 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
     <div id="studySetup">
       <div class="section-title">Cards to study <span style="font-weight:400">· pick All or one or more tags</span></div>
       <div class="row" id="studyTags" style="margin-top:0"></div>
+      <div class="section-title">Practice</div>
+      <div class="seg" id="studyMode">
+        <button type="button" class="btn" data-mode="read">👁 Read</button>
+        <button type="button" class="btn" data-mode="write">✍️ Write</button>
+      </div>
+      <p class="hint" id="studyModeHint" style="margin-top:6px"></p>
+      <div id="studyDirWrap">
       <div class="section-title">Show first</div>
       <div class="seg" id="studyDir">
         <button type="button" class="btn" data-dir="jp">Japanese</button>
         <button type="button" class="btn" data-dir="en">English</button>
         <button type="button" class="btn" data-dir="mix">Mixed</button>
+      </div>
       </div>
       <label class="check"><input type="checkbox" id="studyAudio"> Play Japanese audio automatically</label>
       <button class="btn primary big" id="studyStart" style="width:100%;margin-top:20px"></button>
@@ -198,6 +244,7 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
       <div class="progbar"><i id="studyBar"></i></div>
       <div class="flash" id="flash"></div>
       <div class="seg" id="studyBtns"></div>
+      <div id="studyPad" hidden></div>
       <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space to flip · ← Again · → Got it</p>
     </div>
     <div id="studyDone" hidden>
@@ -238,6 +285,17 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
       <button type="button" class="btn danger left" onclick="dAcct.close();app.onSignOut?.()">Sign out</button>
       <button class="btn">Close</button>
     </div>
+  </form>
+</dialog>
+
+<!-- Writing practice dialog -->
+<dialog id="dWrite" class="wide">
+  <form method="dialog">
+    <div class="w-head">
+      <div><h2 id="wTitle" lang="ja"></h2><div id="wSub"></div></div>
+      <button class="btn">Close</button>
+    </div>
+    <div id="wPad"></div>
   </form>
 </dialog>
 
@@ -282,7 +340,7 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
   <form method="dialog">
     <button type="button" class="bigchar" id="cChar" lang="ja" title="Play pronunciation"></button>
     <p class="hint" style="text-align:center;font-size:16px;margin-top:-4px" id="cRomaji"></p>
-    <div style="text-align:center"><button type="button" class="btn" id="cPlay">🔊 Play sound</button></div>
+    <div style="text-align:center;display:flex;gap:8px;justify-content:center"><button type="button" class="btn" id="cPlay">🔊 Play sound</button><button type="button" class="btn" id="cWrite">✍️ Practice writing</button></div>
     <div class="seg" id="cStatus"></div>
     <div class="section-title" id="cWordsTitle"></div>
     <div class="mini" id="cWords"></div>
@@ -294,6 +352,7 @@ body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{d
 </dialog>
 
 <script src="firebase-config.js"></script>
+<script src="write.js"></script>
 <script>
 /* ---------- storage ---------- */
 const KEY_WORDS='jn.words', KEY_CHARS='jn.chars';
@@ -377,7 +436,7 @@ function render(){
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
     <div class="card" data-id="${w.id}">
-      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">🔊</button></div>
+      <div><span class="jp" lang="ja">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="ja">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">🔊</button>${writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practice writing" aria-label="Practice writing">✍️</button>`:''}</div>
       <span class="type">${esc(w.type)}</span>
       <div class="meaning">${esc(w.meaning)}</div>
       ${w.notes?`<div class="notes">${esc(w.notes)}</div>`:''}
@@ -390,6 +449,7 @@ $('fSort').addEventListener('change',render);
 $('tagChips').addEventListener('click',e=>{const t=e.target.dataset.tag;if(t==null)return;activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()});
 $('list').addEventListener('click',e=>{
   const s=e.target.closest('[data-say]');if(s){sayWord(words.find(w=>w.id===s.dataset.say));return}
+  const wr=e.target.closest('[data-write]');if(wr){writeWordEntry(words.find(w=>w.id===wr.dataset.write));return}
   const c=e.target.closest('.card');if(c)openEdit(c.dataset.id)});
 
 const parseTags=s=>[...new Set(String(s||'').split(',').map(t=>t.trim()).filter(Boolean))];
@@ -503,6 +563,7 @@ function openChar(ch,r){
   $('cWordsTitle').textContent=hits.length?`In your notebook (${hits.length})`:'Not in any of your words yet';
   $('cWords').innerHTML=hits.slice(0,30).map(w=>`<div lang="ja" data-id="${w.id}" title="Play pronunciation">🔊 ${esc(w.jp)} <span>— ${esc(w.meaning)}</span></div>`).join('');
   $('cWords').onclick=e=>{const d=e.target.closest('[data-id]');if(d)sayWord(words.find(w=>w.id===d.dataset.id))};
+  $('cWrite').onclick=()=>{$('dChar').close();writeChar(ch,r)};
   $('cSearch').onclick=()=>{$('dChar').close();$('q').value=ch;showTab('words');render()};
   $('dChar').showModal();sayKana(ch);
 }
@@ -556,11 +617,13 @@ function sayKana(ch){
 const sayWord=w=>w&&speak(/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
 
 /* ---------- study (flashcards) ---------- */
-const study={tags:new Set(),dir:'jp',audio:true,queue:[],missed:new Set(),done:0,total:0,cur:null,flipped:false,front:'jp'};
-try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){study.tags=new Set(p.tags||[]);study.dir=p.dir||'jp';study.audio=p.audio!==false}}catch{}
-const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],dir:study.dir,audio:study.audio}))}catch{}};
+const study={tags:new Set(),dir:'jp',mode:'read',hint:false,pad:null,audio:true,queue:[],missed:new Set(),done:0,total:0,cur:null,flipped:false,front:'jp'};
+try{const p=JSON.parse(localStorage.getItem('jn.study'));if(p){study.tags=new Set(p.tags||[]);study.dir=p.dir||'jp';study.mode=p.mode==='write'?'write':'read';study.audio=p.audio!==false}}catch{}
+const saveStudyPrefs=()=>{try{localStorage.setItem('jn.study',JSON.stringify({tags:[...study.tags],dir:study.dir,mode:study.mode,audio:study.audio}))}catch{}};
 // A word is in the deck if it has ANY of the selected tags (so "Unit 1" + "Unit 2" studies both)
-const deckWords=()=>study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words;
+// Write mode skips entries with nothing to write (e.g. a romaji-only entry)
+const deckWords=()=>(study.tags.size?words.filter(w=>(w.tags||[]).some(t=>study.tags.has(t))):words)
+  .filter(w=>study.mode!=='write'||writableChars(w.jp).length);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 function renderStudySetup(){
@@ -569,6 +632,9 @@ function renderStudySetup(){
   $('studyTags').innerHTML=`<button class="chip ${study.tags.size?'':'on'}" data-tag="">All (${words.length})</button>`+
     tags.map(t=>`<button class="chip ${study.tags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)} (${cnt(t)})</button>`).join('');
   $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
+  $('studyMode').querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===study.mode));
+  $('studyDirWrap').hidden=study.mode==='write';
+  $('studyModeHint').textContent=study.mode==='write'?'See the English (and hear it), write the Japanese, then compare.':'See one side, remember the other.';
   $('studyAudio').checked=study.audio;
   const n=deckWords().length;
   $('studyStart').textContent=n?`Start · ${n} card${n===1?'':'s'}`:'No cards yet: add some words first';
@@ -576,6 +642,7 @@ function renderStudySetup(){
 }
 $('studyTags').onclick=e=>{const t=e.target.dataset.tag;if(t==null)return;if(t==='')study.tags.clear();else study.tags.has(t)?study.tags.delete(t):study.tags.add(t);saveStudyPrefs();renderStudySetup()};
 $('studyDir').onclick=e=>{const d=e.target.dataset.dir;if(!d)return;study.dir=d;saveStudyPrefs();renderStudySetup()};
+$('studyMode').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;study.mode=m;saveStudyPrefs();renderStudySetup()};
 $('studyAudio').onchange=e=>{study.audio=e.target.checked;saveStudyPrefs()};
 $('studyStart').onclick=()=>startStudy(deckWords());
 $('studyAgain').onclick=()=>startStudy(deckWords());
@@ -591,8 +658,13 @@ function nextCard(){
   while(study.queue.length&&!words.some(w=>w.id===study.queue[0]))study.queue.shift(); // skip deleted words
   if(!study.queue.length)return finishStudy();
   study.cur=words.find(w=>w.id===study.queue[0]);study.flipped=false;
-  study.front=study.dir==='mix'?(Math.random()<.5?'jp':'en'):study.dir;
+  study.front=study.mode==='write'?'en':study.dir==='mix'?(Math.random()<.5?'jp':'en'):study.dir;
+  study.hint=false;
+  const writing=study.mode==='write';
+  $('studyPad').hidden=!writing;$('flash').classList.toggle('compact',writing);
+  if(writing){study.pad||=createPad($('studyPad'),{checkButton:false});study.pad.load(study.cur.jp)}
   drawCard();
+  if(writing&&study.audio)sayWord(study.cur);
   if(study.front==='jp'&&study.audio)sayWord(study.cur);
 }
 function drawCard(){
@@ -601,8 +673,12 @@ function drawCard(){
   const read=w.reading?`<div class="f-read" lang="ja">${esc(w.reading)}</div>`:'';
   const say=`<button type="button" class="say" data-say="1" title="Play pronunciation">🔊</button>`;
   let h=jp?jpHtml+say:enHtml;
-  if(study.flipped)h+='<hr>'+(jp?read+enHtml:jpHtml+read+say)+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
-  else h+='<div class="hint">Tap or press Space to show the answer</div>';
+  if(study.mode==='write'){
+    // Prompt: English + audio, optional reading hint; answer: the word to compare with your writing
+    h=enHtml+`<div style="display:flex;gap:6px;justify-content:center;align-items:center">${say}${w.reading&&!study.flipped?(study.hint?read:'<button type="button" class="btn" data-hint="1" style="padding:4px 10px">Show reading</button>'):''}</div>`;
+    if(study.flipped)h+='<hr>'+jpHtml+read+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
+  }else if(study.flipped)h+='<hr>'+(jp?read+enHtml:jpHtml+read+say)+(w.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'');
+  else if(study.mode!=='write')h+='<div class="hint">Tap or press Space to show the answer</div>';
   $('flash').innerHTML=h;
   $('studyBtns').innerHTML=study.flipped
     ?'<button type="button" class="btn big again" data-a="0">← Again</button><button type="button" class="btn big good" data-a="1">Got it →</button>'
@@ -611,7 +687,11 @@ function drawCard(){
   $('studyProg').textContent=`${study.done} done · ${left} left`;
   $('studyBar').style.width=`${100*study.done/(study.done+left)}%`;
 }
-function flip(){if(study.flipped)return;study.flipped=true;drawCard();if(study.front==='en'&&study.audio)sayWord(study.cur)}
+function flip(){
+  if(study.flipped)return;study.flipped=true;drawCard();
+  if(study.mode==='write'){study.pad.revealAll();return}
+  if(study.front==='en'&&study.audio)sayWord(study.cur);
+}
 function answer(ok){
   if(!study.flipped)return;
   const id=study.queue.shift();
@@ -619,7 +699,11 @@ function answer(ok){
   else{study.missed.add(id);study.queue.splice(Math.min(3,study.queue.length),0,id)} // comes back a few cards later
   nextCard();
 }
-$('flash').onclick=e=>{if(e.target.closest('[data-say]'))sayWord(study.cur);else flip()};
+$('flash').onclick=e=>{
+  if(e.target.closest('[data-say]'))return sayWord(study.cur);
+  if(e.target.closest('[data-hint]')){study.hint=true;return drawCard()}
+  if(study.mode!=='write')flip(); // in write mode only "Show answer" flips, so a stray tap can't
+};
 $('studyBtns').onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(a==null)return;e.target.blur();a==='flip'?flip():answer(a==='1')};
 function finishStudy(){
   const m=study.missed.size;
@@ -627,7 +711,7 @@ function finishStudy(){
   $('studyRetry').hidden=!m;$('studyRetry').textContent=`Study the ${m} I missed`;
   studyView('done');
 }
-function endStudy(){try{speechSynthesis.cancel()}catch{}renderStudySetup();studyView('setup')}
+function endStudy(){try{speechSynthesis.cancel()}catch{}$('studyPad').hidden=true;$('flash').classList.remove('compact');renderStudySetup();studyView('setup')}
 
 /* ---------- tabs & shortcuts ---------- */
 function showTab(t){
