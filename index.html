@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Japanese Notebook</title>
 <style>
 :root{--bg:#faf8f5;--panel:#fff;--ink:#1f1d1a;--muted:#6b665e;--line:#e6e1d8;--accent:#c0392b;--accent-ink:#fff;--learning:#f6dc8e;--known:#9fd3a8;--chip:#f1ede6}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}}
 :root[data-theme="dark"]{--bg:#171614;--panel:#211f1c;--ink:#ece8e1;--muted:#a39d93;--line:#36322d;--accent:#e0675a;--accent-ink:#1a1210;--learning:#6b5520;--known:#2f5f3a;--chip:#2c2925}
 *{box-sizing:border-box}
+/* No double-tap zoom on taps; no automatic zoom when a text box is focused (see the viewport tag) */
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{overflow-x:clip} /* never scroll sideways (clip, unlike hidden, keeps the sticky search bar working) */
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
@@ -936,6 +939,16 @@ $('emailForm').addEventListener('submit',e=>{
   app.onEmail?.(e.submitter?.value==='up'?'up':'in',f.email.value.trim(),f.pw.value);
 });
 document.body.dataset.mode=CLOUD?'cloud':'local';
+// A phone showing the "desktop site" ignores this page's mobile layout: tiny text, sideways scrolling and
+// zooming in on every tap. Detect it (page laid out much wider than the screen) and say how to switch.
+try{
+  const screenW=Math.min(screen.width,screen.height),layoutW=document.documentElement.clientWidth;
+  if((navigator.maxTouchPoints>0||'ontouchstart' in window)&&screenW<700&&layoutW>screenW*1.3&&!localStorage.getItem('jn.desktopHint')){
+    const t=$('toast');
+    t.innerHTML='<b>Your browser is showing the desktop version of this page</b>, which makes it tiny, scroll sideways and zoom in when you tap. Switch to the mobile version: in <b>Brave</b> tap <b>⋯</b> → <b>Request Mobile Site</b>; in <b>Safari</b> tap <b>ᴀA</b> → <b>Request Mobile Website</b>. <button class="btn" onclick="this.parentNode.hidden=true;try{localStorage.setItem(\'jn.desktopHint\',\'1\')}catch{}">OK</button>';
+    t.hidden=false;
+  }
+}catch{}
 document.body.dataset.state=CLOUD?'loading':'in';
 
 render();renderKana();
