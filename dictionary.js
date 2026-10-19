@@ -146,7 +146,7 @@ const GENDER = { m: 'masculine', f: 'feminine', n: 'neuter', pl: 'plural' };
 
 function renderDict() {
   const box = $('dictBox'), q = $('q').value.trim();
-  box.hidden = !q;
+  box.hidden = !q || !L.dict; // blank projects have no dictionary
   if (!q) return;
   if (!DICT) {
     $('dictList').innerHTML = `<div class="empty">${dictError ? 'The dictionary couldn’t load. Check your connection and search again.' : 'Loading the dictionary…'}</div>`;

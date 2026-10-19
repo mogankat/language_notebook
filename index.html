@@ -93,7 +93,8 @@ code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:13px}
 /* accounts & sync */
 body[data-state="loading"] #main,body[data-state="loading"] header .tabs,body[data-state="loading"] #acctBtn,
 body[data-state="out"] #main,body[data-state="out"] header .tabs,body[data-state="out"] #acctBtn,body[data-state="out"] .lang-badge{display:none}
-body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading{display:none}
+body:not([data-state="out"]) #signin,body:not([data-state="loading"]) #loading,body:not([data-state="welcome"]) #welcome{display:none}
+body[data-state="welcome"] #main,body[data-state="welcome"] header .tabs,body[data-state="welcome"] .lang-badge{display:none}
 .head-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #acctBtn{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;padding:0}
 #acctBtn i{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bg);background:var(--muted)}
@@ -157,7 +158,7 @@ dialog.wide form{padding:14px}
 #studyPad{margin:12px 0}
 #studyPad .wp-box{width:max(200px,min(100%,calc(100vh - 430px),440px));width:max(200px,min(100%,calc(100dvh - 430px),440px))}
 /* language badge & profile sidebar */
-.lang-badge{border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:999px;font:inherit;font-size:13px;font-weight:500;padding:2px 10px;margin-left:4px;cursor:pointer;vertical-align:3px}
+.lang-badge{max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:999px;font:inherit;font-size:13px;font-weight:500;padding:2px 10px;margin-left:4px;cursor:pointer;vertical-align:3px}
 #acctBtn{display:inline-flex;align-items:center;justify-content:center}
 #drawerBack{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40;opacity:0;transition:opacity .2s}
 #drawer{position:fixed;top:0;right:0;bottom:0;width:min(340px,88vw);background:var(--panel);border-left:1px solid var(--line);z-index:41;
@@ -174,6 +175,16 @@ body.drawer-open #drawerBack{opacity:1}
 .lang-name{color:var(--muted);font-size:14px}
 .lang-count{color:var(--muted);font-size:12px}
 .drawer-foot{margin-top:auto;padding-top:16px}
+/* projects */
+.new-proj{margin-top:8px}
+.proj-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.linkbtn.danger{color:var(--accent)}
+.proj-types{max-height:42vh;overflow-y:auto}
+.lang-opt .lang-native{overflow-wrap:anywhere}
+.meaning{white-space:pre-wrap}
+.f-jp.long{font-size:30px}
+.f-en.long{font-size:18px;line-height:1.4;white-space:pre-wrap;text-align:left}
+dialog textarea[name="meaning"]{resize:vertical}
 /* typing answers (French, German) */
 #studyType{margin:10px 0 0}
 #typeIn{font-size:20px;text-align:center}
@@ -248,14 +259,14 @@ body.drawer-open #drawerBack{opacity:1}
 <body>
 <div class="wrap">
   <header>
-    <h1><span>Notebook</span> <button type="button" class="lang-badge" id="langBadge" onclick="openDrawer()" title="Change language"></button></h1>
+    <h1><span>Notebook</span> <button type="button" class="lang-badge" id="langBadge" onclick="openDrawer()" title="Switch project"></button></h1>
     <div class="head-right">
       <div class="tabs" role="tablist">
         <button id="tabKana" onclick="showTab('kana')">Characters</button>
         <button id="tabWords" onclick="showTab('words')">Words</button>
         <button id="tabStudy" onclick="showTab('study')">Study</button>
       </div>
-      <button id="acctBtn" onclick="openDrawer()" title="Profile and languages" aria-label="Profile and languages"><span id="acctInitial"></span><i></i></button>
+      <button id="acctBtn" onclick="openDrawer()" title="Profile and projects" aria-label="Profile and projects"><span id="acctInitial"></span><i></i></button>
     </div>
   </header>
 
@@ -274,6 +285,14 @@ body.drawer-open #drawerBack{opacity:1}
         <button type="button" class="linkbtn" onclick="app.onForgot?.($('emailForm').email.value.trim())">Forgot password?</button>
       </form>
       <p id="authMsg"></p>
+    </div>
+  </section>
+
+  <section id="welcome">
+    <div class="signin-card">
+      <h2>Create your first project</h2>
+      <p class="hint">Pick a language to get its built-in dictionary, letters and audio, or start a blank project for your own terms and definitions, like a university course.</p>
+      <button type="button" class="btn primary big" onclick="openNewProject()">+ New project</button>
     </div>
   </section>
 
@@ -378,19 +397,34 @@ body.drawer-open #drawerBack{opacity:1}
 
 <div id="toast" hidden></div>
 
-<!-- Profile sidebar: account and language -->
+<!-- Profile sidebar: account and projects -->
 <div id="drawerBack" hidden onclick="closeDrawer()"></div>
-<aside id="drawer" hidden aria-label="Profile and languages">
+<aside id="drawer" hidden aria-label="Profile and projects">
   <div class="drawer-top">
     <div><div class="dr-name" id="drName"></div><div class="hint" id="drEmail"></div></div>
     <button type="button" class="btn small" onclick="closeDrawer()">Close</button>
   </div>
   <p class="hint" id="drSync"></p>
-  <div class="section-title">Language</div>
+  <div class="section-title">Projects</div>
   <div id="langList"></div>
-  <p class="hint" style="margin-top:10px">Each language has its own words, tags and progress.</p>
+  <button type="button" class="btn new-proj" onclick="openNewProject()">+ New project</button>
+  <div class="proj-actions" id="projActions"><button type="button" class="linkbtn" onclick="renameProject()">Rename this project</button><button type="button" class="linkbtn danger" onclick="deleteProject()">Delete this project</button></div>
   <div class="drawer-foot"><button type="button" class="btn danger" id="drSignOut" onclick="closeDrawer();app.onSignOut?.()">Sign out</button></div>
 </aside>
+
+<!-- New project dialog -->
+<dialog id="dProject" class="wide">
+  <form method="dialog" id="fProject">
+    <h2>New project</h2>
+    <p class="hint">A language project comes with its dictionary, letters and audio. A blank project is for anything else: your own terms and definitions, e.g. for a university course.</p>
+    <div class="type-list proj-types" id="projTypes"></div>
+    <label>Name<input name="name" required maxlength="60" placeholder="e.g. Japanese, or Biology 201"></label>
+    <div class="actions">
+      <button type="button" class="btn" id="projCancel" onclick="dProject.close()">Cancel</button>
+      <button class="btn primary" value="save">Create project</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- Writing practice dialog -->
 <dialog id="dWrite" class="wide">
@@ -409,11 +443,11 @@ body.drawer-open #drawerBack{opacity:1}
     <h2 id="editTitle">Add entry</h2>
     <p class="hint" id="editDictHint">Don’t want to type it all? <button type="button" class="linkbtn" onclick="findInDictionary()">Find it in the dictionary</button></p>
     <label><span id="fJpLabel">Japanese</span> *<input name="jp" required lang="ja"></label>
-    <div class="two">
+    <div class="two" id="fReadRow">
       <label><span id="fReadLabel">Reading</span><input name="reading" lang="ja"></label>
       <label>Type<select name="type"><option value="word">Word</option><option value="phrase">Phrase</option><option value="grammar">Grammar</option></select></label>
     </div>
-    <label>Meaning *<input name="meaning" required placeholder="cat"></label>
+    <label><span id="fMeanLabel">Meaning</span> *<textarea name="meaning" rows="1" required placeholder="cat"></textarea></label>
     <label>Tags (comma separated)<input name="tags" placeholder="Unit 2, animals" list="tagList"></label>
     <label>Notes<textarea name="notes" rows="2" placeholder="Example sentence, memory trick…"></textarea></label>
     <div class="actions">
@@ -540,6 +574,7 @@ function matcher(q){
 }
 function render(){
   if(typeof renderDict==='function')renderDict(); // dictionary results below your words (dictionary.js)
+  if(typeof study!=='undefined'&&!$('study').hidden&&!$('studySetup').hidden)renderStudySetup(); // keep card counts current
   const tags=allTags();
   activeTags.forEach(t=>{if(!tags.includes(t))activeTags.delete(t)});
   $('tagChips').innerHTML=tags.map(t=>`<button class="chip ${activeTags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
@@ -553,12 +588,12 @@ function render(){
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
   if(!words.length){
-    $('list').innerHTML=`<div class="empty"><p>Your notebook is empty.</p><p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p><button class="btn primary" onclick="openEdit()">Add your first word</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
+    $('list').innerHTML=`<div class="empty"><p>This project is empty.</p>${L.dict?'<p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p>':''}<button class="btn primary" onclick="openEdit()">Add your first ${L.blank?'term':'word'}</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button><button class="btn" onclick="addSamples()">Load a few samples</button></div>`;
     return;
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
     <div class="card" data-id="${w.id}">
-      <div><span class="jp" lang="${LANG}">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="${LANG}">${esc(w.reading)}</span>`:''}<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>${L.handwriting&&writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practise writing" aria-label="Practise writing">${ICON.pen}</button>`:''}</div>
+      <div><span class="jp" lang="${LANG}">${esc(w.jp)}</span>${w.reading?` <span class="reading" lang="${LANG}">${esc(w.reading)}</span>`:''}${L.tts?`<button class="say" data-say="${w.id}" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`:''}${L.handwriting&&writableChars(w.jp).length?`<button class="say" data-write="${w.id}" title="Practise writing" aria-label="Practise writing">${ICON.pen}</button>`:''}</div>
       <span class="type">${esc(w.type)}</span>
       <div class="meaning">${esc(w.meaning)}</div>
       ${w.notes?`<div class="notes">${esc(w.notes)}</div>`:''}
@@ -591,7 +626,7 @@ function openEdit(id){
   f.type.value=w.type||'word';f.tags.value=(w.tags||[]).join(', ');f.notes.value=w.notes||'';
   if(!id&&activeTags.size)f.tags.value=[...activeTags].join(', ');
   $('editTitle').textContent=id?'Edit entry':'Add entry';
-  $('editDictHint').hidden=!!id;
+  $('editDictHint').hidden=!!id||!L.dict;
   $('btnDelete').style.display=id?'':'none';
   $('dEdit').showModal();f.jp.focus();
 }
@@ -620,7 +655,9 @@ $('fBulk').addEventListener('submit',e=>{
     const p=line.split(/\s*[|\t]\s*/).map(s=>s.trim());
     if(!p[0]||p.length<2)continue;
     let jp,reading='',meaning,tags=[];
-    if(p.length===2)[jp,meaning]=p;else[jp,reading,meaning,tags]=[p[0],p[1],p[2],parseTags(p[3])];
+    if(p.length===2)[jp,meaning]=p;
+    else if(L.blank)[jp,meaning,tags]=[p[0],p[1],parseTags(p[2])]; // term | definition | tags
+    else[jp,reading,meaning,tags]=[p[0],p[1],p[2],parseTags(p[3])];
     if(!meaning)continue;
     const id=uid();ids.push(id);
     words.push({id,added:t+n,jp,reading,meaning,type:/[\s。、！？!?]/.test(jp)||jp.length>8?'phrase':'word',tags:[...new Set([...tags,...extra])],notes:''});n++;
@@ -637,15 +674,15 @@ function addSamples(){
 }
 
 function exportData(){
-  const blob=new Blob([JSON.stringify({app:'language-notebook',version:2,lang:LANG,exported:new Date().toISOString(),words,chars},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${L.name.toLowerCase()}-notebook-${new Date().toISOString().slice(0,10)}.json`;a.click();
+  const blob=new Blob([JSON.stringify({app:'language-notebook',version:3,lang:LANG,project:PROJECT.name,exported:new Date().toISOString(),words,chars},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${PROJECT.name.toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'')||'notebook'}-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 $('importFile').addEventListener('change',async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
-    const d=JSON.parse(await file.text()),from=LANGS[d.lang||'ja'];
-    if((d.lang||'ja')!==LANG&&!confirm(`This backup is from your ${from?.name||d.lang} notebook. Import it into ${L.name} anyway?`)){e.target.value='';return}
+    const d=JSON.parse(await file.text()),from=typeInfo(d.lang||'ja');
+    if((d.lang||'ja')!==LANG&&!confirm(`This backup is from a ${from?.name||d.lang} project. Import it into “${PROJECT.name}” anyway?`)){e.target.value='';return}
     const n=mergeData(d);
     alert(`Imported ${n} new entr${n===1?'y':'ies'}.`);
   }catch{alert('That file could not be read as a notebook backup.')}
@@ -782,7 +819,7 @@ function sayKana(ch){
   kanaAudio.play().catch(()=>speak(ch));
 }
 // Prefer a kana reading (more reliable than kanji); romaji readings aren't speakable as Japanese.
-const sayWord=w=>w&&speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
+const sayWord=w=>w&&L.tts&&speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
 
 /* ---------- study (flashcards) ----------
    A card is a word, or a kana used in the chosen words, practised one way picked at random from the
@@ -790,7 +827,7 @@ const sayWord=w=>w&&speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.r
    or speak (speech recognition checks what you say). */
 const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
 const isBrave=!!navigator.brave; // Brave ships the API but blocks the recognition service
-const canSpeak=!!SpeechRec&&!isBrave;
+const canSpeak=!!SpeechRec&&!isBrave&&!L.blank; // blank projects have no language to listen for
 const SKILLS=['read','write','speak'];
 const study={tags:new Set(),skills:new Set(['read','write']),kana:true,dir:'jp',audio:true,
   queue:[],missed:new Set(),done:0,total:0,card:null,stage:'front',hint:false,pad:null,result:null,heard:'',listening:false,speakErr:null,note:'',rec:null};
@@ -836,7 +873,7 @@ function renderStudySetup(){
   const sp=$('speakOpt').querySelector('input');sp.disabled=!canSpeak;if(!canSpeak)sp.checked=false;
   $('speakOpt').classList.toggle('disabled',!canSpeak);
   $('speakNote').textContent=canSpeak?'Say it out loud. Your browser’s speech recognition checks it (it sends the audio to Apple or Google).'
-    :isBrave?'Not available in Brave, which blocks speech recognition. Use Safari or Chrome.':'Not available in this browser. Use Safari or Chrome.';
+    :L.blank?'Not available for blank projects, which have no language to listen for.':isBrave?'Not available in Brave, which blocks speech recognition. Use Safari or Chrome.':'Not available in this browser. Use Safari or Chrome.';
   $('studyKana').checked=study.kana;
   $('studyDirWrap').hidden=!study.skills.has('read');
   $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
@@ -879,8 +916,9 @@ function nextCard(){
 }
 function drawCard(){
   const c=study.card,w=curWord(),back=study.stage==='back';
-  const say=`<button type="button" class="say" data-say="1" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`;
-  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp" lang="${LANG}">${esc(t)}</div>`, en=t=>`<div class="f-en">${esc(t)}</div>`;
+  const say=L.tts?`<button type="button" class="say" data-say="1" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`:'';
+  // long terms and definitions (course notes) get a smaller font
+  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp${String(t).length>14?' long':''}" lang="${LANG}">${esc(t)}</div>`, en=t=>`<div class="f-en${String(t).length>50?' long':''}">${esc(t)}</div>`;
   const read=w?.reading?`<div class="f-read" lang="${LANG}">${esc(w.reading)}</div>`:'';
   const notes=w?.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'';
   const line=x=>`<div class="f-row">${x}</div>`;
@@ -891,14 +929,14 @@ function drawCard(){
     if(c.kind==='kana'){h=label('Reading · what sound is this?')+jpBig(c.ch);if(back)h+='<hr>'+en(kanaRomaji(c.ch))+say}
     else{
       const jp=study.front==='jp';
-      h=label(jp?'Reading · what does it mean?':`Reading · say or think the ${L.name}`)+(jp?jpBig(w.jp)+say:en(w.meaning));
+      h=label(L.blank?(jp?'Term · what’s the definition?':'Definition · what’s the term?'):jp?'Reading · what does it mean?':`Reading · say or think the ${L.name}`)+(jp?jpBig(w.jp)+say:en(w.meaning));
       if(back)h+='<hr>'+(jp?read+en(w.meaning):jpBig(w.jp)+read+say)+notes;
     }
     if(!back)h+='<div class="hint">Tap or press Space to show the answer</div>';
   }
   if(c.skill==='write'){
     if(c.kind==='kana')h=label(`Writing · write this ${LANG==='ko'?'Hangul letter':isKatakana(c.ch)?'katakana':'hiragana'}`)+en(kanaRomaji(c.ch))+line(say);
-    else h=label(`Writing · ${L.handwriting?'write':'type'} it in ${L.name}`)+en(w.meaning)+line(say+(w.reading&&!back&&L.handwriting?hintBtn('Show reading',read):''));
+    else h=label(L.blank?'Writing · type the term':`Writing · ${L.handwriting?'write':'type'} it in ${L.name}`)+en(w.meaning)+line(say+(w.reading&&!back&&L.handwriting?hintBtn('Show reading',read):''));
     if(back){
       h+='<hr>'+(c.kind==='kana'?jpBig(c.ch):jpBig(w.jp)+read);
       if(!L.handwriting&&c.kind==='word'&&!study.gaveUp)h+=`<div class="hint">You typed: <span lang="${LANG}">${esc($('typeIn').value.trim()||'(nothing)')}</span></div>`;
@@ -941,7 +979,7 @@ function checkTyped(typed,answerText){
   const clean=s=>String(s).normalize('NFC').replace(/[’`´]/g,"'").replace(/\s+/g,' ').trim();
   const a=clean(typed),b=clean(answerText);
   if(!a)return{ok:false,note:'Nothing typed'};
-  if(a===b||((LANG==='fr'||LANG==='es')&&a.toLowerCase()===b.toLowerCase()))return{ok:true};
+  if(a===b||((LANG==='fr'||LANG==='es'||L.blank)&&a.toLowerCase()===b.toLowerCase()))return{ok:true};
   if(LANG==='de'&&a.replace(/ß/g,'ss')===b.replace(/ß/g,'ss'))return{ok:true}; // Strasse for Straße is fine (Swiss spelling)
   if(a.toLowerCase()===b.toLowerCase())return{ok:false,note:'Almost: check the capital letters (German nouns start with a capital)'};
   if(fold(a)===fold(b))return{ok:false,note:'Almost: check the accents'+(LANG==='de'?' and umlauts':'')};
@@ -1083,27 +1121,98 @@ window.app={
   setWords(list){words=list;refreshAll()},
   setChars(c){chars=c;refreshAll()},
   localData:()=>({words:load(KEY_WORDS,[]),chars:load(KEY_CHARS,{})}),
-  lang:LANG,
+  lang:LANG,project:PROJECT.id,
+  setProjects(list){ // from cloud.js; decides between this project, another one, or the welcome screen
+    PROJECTS=list;
+    if(!list.some(p=>p.id===PROJECT.id)){
+      if(list.length)return switchProject(list[0]); // e.g. it was deleted on another device
+      document.body.dataset.state='welcome';return;
+    }
+    const me=list.find(p=>p.id===PROJECT.id);
+    if(me.name!==PROJECT.name){PROJECT.name=me.name;rememberProject(PROJECT);applyLanguage()}
+    document.body.dataset.state='in';
+    if(!$('drawer').hidden)renderLangList();
+  },
   importLocal(d){const n=mergeData(d);setTimeout(()=>alert(`Copied ${n} word${n===1?'':'s'} into your account.`),50)},
   signedIn(u){
-    document.body.dataset.state='in';
+    signedInUser=true;
+    // wait for the project list (setProjects) before showing a project; don't hang if it never comes
+    document.body.dataset.state=PROJECTS?(PROJECTS.length?'in':'welcome'):'loading';
+    setTimeout(()=>{if(document.body.dataset.state==='loading'&&signedInUser)document.body.dataset.state='in'},6000);
     $('acctInitial').textContent=(u.name||'?').trim()[0].toUpperCase();
     $('drName').textContent=u.name;$('drEmail').textContent=u.email&&u.email!==u.name?u.email:'';
     $('authMsg').textContent='';
   },
   signedOut(){
+    signedInUser=false;PROJECTS=null;
     document.body.dataset.state='out';
     words=[];chars={};refreshAll();studyView('setup');
     document.querySelectorAll('dialog[open]').forEach(d=>d.close());
   },
   setSync(state){$('acctBtn').dataset.sync=state;$('drSync').textContent=SYNC_TEXT[state]},
   authMessage(msg,isErr){
-    if(document.body.dataset.state==='in'){const t=$('toast');t.innerHTML=`${esc(msg)} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;return}
+    if(signedInUser){const t=$('toast');t.innerHTML=`${esc(msg)} <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;return}
     if(document.body.dataset.state==='loading')document.body.dataset.state='out';
     $('authMsg').textContent=msg;$('authMsg').className=isErr?'err':'';
   },
 };
-/* ---------- profile sidebar & language switch ---------- */
+/* ---------- projects ---------- */
+// The person's projects [{id, type, name, created}]: from the account (cloud.js), or this browser
+let PROJECTS=null,signedInUser=false;
+const rememberProject=p=>{try{localStorage.setItem('jn.current',JSON.stringify({id:p.id,type:p.type,name:p.name}))}catch{}};
+function localProjects(){
+  const saved=load('jn.projects',null);if(saved)return saved;
+  // first time: the notebooks from before projects (one per language) that have words
+  return LANG_ORDER.filter(c=>load(lkey('words',c),[]).length).map(c=>({id:c,type:c,name:LANGS[c].name,created:Date.now()}));
+}
+function saveProjects(list){
+  PROJECTS=list;
+  if(CLOUD)return window.cloud?.saveProjects(list);
+  try{localStorage.setItem('jn.projects',JSON.stringify(list))}catch{}
+}
+function switchProject(p){rememberProject(p);location.replace(location.pathname)} // reload into it (drops any ?lang=)
+const typeLabel=type=>type==='blank'?'Blank':LANGS[type].name;
+function openNewProject(){
+  closeDrawer();
+  const f=$('fProject');f.reset();
+  $('projTypes').innerHTML=[...LANG_ORDER,'blank'].map((t,i)=>`<label class="type-opt"><input type="radio" name="type" value="${t}"${i?'':' checked'}>
+    <span><b>${t==='blank'?'Blank':`${LANGS[t].native} · ${LANGS[t].name}`}</b><small>${t==='blank'?'Your own terms and definitions, with flashcards. No dictionary.':`Built-in dictionary of ${LANGS[t].dictSize} words, ${LANGS[t].lettersTab.toLowerCase()} and audio.`}</small></span></label>`).join('');
+  f.name.value=LANGS.ja.name;
+  $('projCancel').hidden=!(PROJECTS||[]).length; // the first project can't be skipped
+  $('dProject').showModal();
+}
+$('projTypes').addEventListener('change',e=>{
+  const f=$('fProject'),t=e.target.value,names=[...LANG_ORDER.map(c=>LANGS[c].name),'Blank',''];
+  if(names.includes(f.name.value.trim()))f.name.value=t==='blank'?'':LANGS[t].name; // suggest a name until one is typed
+  if(t==='blank')f.name.focus();
+});
+$('fProject').addEventListener('submit',async e=>{
+  if(e.submitter?.value!=='save')return;
+  const f=e.target,type=f.type.value,name=f.name.value.trim()||typeLabel(type);
+  const p={id:'p'+uid(),type,name,created:Date.now()};
+  // don't wait forever offline: the save is kept on this device and syncs later
+  await Promise.race([saveProjects([...(PROJECTS||[]),p]),new Promise(r=>setTimeout(r,1500))]);
+  switchProject(p);
+});
+async function renameProject(){
+  const name=prompt('Project name',PROJECT.name)?.trim();
+  if(!name||name===PROJECT.name)return;
+  PROJECT.name=name;rememberProject(PROJECT);
+  await saveProjects((PROJECTS||[]).map(p=>p.id===PROJECT.id?{...p,name}:p));
+  applyLanguage();renderLangList();
+}
+async function deleteProject(){
+  const n=words.length;
+  if(!confirm(`Delete “${PROJECT.name}”${n?` and its ${n} word${n===1?'':'s'}`:''}? This can’t be undone.\n\nTip: “Export backup” on the Words tab saves a copy first.`))return;
+  if(CLOUD)await window.cloud?.deleteProjectData(PROJECT.id);
+  else for(const k of ['words','chars','study','dictTag','dictSpell'])try{localStorage.removeItem(lkey(k))}catch{}
+  const rest=(PROJECTS||[]).filter(p=>p.id!==PROJECT.id);
+  await saveProjects(rest);
+  try{localStorage.removeItem('jn.current')}catch{}
+  if(rest.length)switchProject(rest[0]);else{closeDrawer();document.body.dataset.state='welcome';words=[];chars={};refreshAll()}
+}
+
+/* ---------- profile sidebar ---------- */
 let drawerTimer=0;
 function openDrawer(){
   clearTimeout(drawerTimer); // a close that's still finishing must not hide it again
@@ -1113,46 +1222,56 @@ function openDrawer(){
   $('drSignOut').hidden=!CLOUD;
   if(!CLOUD){$('drName').textContent='This device';$('drEmail').textContent='Saved in this browser only';}
   renderLangList();
-  if(CLOUD)window.cloud?.counts?.().then(c=>c&&renderLangList(c)).catch(()=>{});
+  if(CLOUD&&PROJECTS?.length)window.cloud?.counts?.(PROJECTS.map(p=>p.id)).then(c=>c&&renderLangList(c)).catch(()=>{});
 }
 function closeDrawer(){document.body.classList.remove('drawer-open');clearTimeout(drawerTimer);drawerTimer=setTimeout(()=>{$('drawer').hidden=$('drawerBack').hidden=true},200)}
 function renderLangList(counts){
-  $('langList').innerHTML=LANG_ORDER.map(code=>{
-    const n=code===LANG?words.length:CLOUD?counts?.[code]:load(lkey('words',code),[]).length;
-    return `<button type="button" class="lang-opt${code===LANG?' on':''}" data-lang="${code}">
-      <span class="lang-native" lang="${code}">${LANGS[code].native}</span><span class="lang-name">${LANGS[code].name}</span>
+  const list=PROJECTS||[];
+  $('projActions').hidden=!list.some(p=>p.id===PROJECT.id);
+  $('langList').innerHTML=list.length?list.map(p=>{
+    const cur=p.id===PROJECT.id,n=cur?words.length:CLOUD?counts?.[p.id]:load(lkey('words',p.id),[]).length;
+    return `<button type="button" class="lang-opt${cur?' on':''}" data-proj="${esc(p.id)}">
+      <span class="lang-native">${esc(p.name)}</span><span class="lang-name" ${p.type!=='blank'?`lang="${p.type}"`:''}>${p.type==='blank'?'Blank':esc(LANGS[p.type].native)}</span>
       <span class="lang-count">${n==null?'':`${n} word${n===1?'':'s'}`}</span></button>`;
-  }).join('');
+  }).join(''):'<p class="hint">No projects yet.</p>';
 }
 $('langList').addEventListener('click',e=>{
-  const code=e.target.closest('[data-lang]')?.dataset.lang;
-  if(!code||code===LANG)return closeDrawer();
-  try{localStorage.setItem('jn.lang',code)}catch{}
-  location.replace(location.pathname); // reload in the new language (drops any ?lang=)
+  const id=e.target.closest('[data-proj]')?.dataset.proj,p=(PROJECTS||[]).find(x=>x.id===id);
+  if(!p||p.id===PROJECT.id)return closeDrawer();
+  switchProject(p);
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('drawer').hidden)closeDrawer()});
 // Labels and examples for the current language
 function applyLanguage(){
-  document.title=`${L.name} Notebook`;
-  $('langBadge').textContent=L.native;$('langBadge').lang=LANG;
-  $('tabKana').textContent=L.lettersTab;
+  document.title=`${PROJECT.name} · Notebook`;
+  $('langBadge').textContent=PROJECT.name;
+  $('tabKana').textContent=L.lettersTab;$('tabKana').hidden=!L.lettersTab; // blank projects have no letters tab
   $('scriptTabs').hidden=LANG!=='ja';
   $('legendTip').textContent=LANG==='ja'?'· tap a character for details':LANG==='zh'?'· tap one to hear it':'· tap a letter for details';
   $('studyKana').closest('label').hidden=!L.lettersWord;
-  $('searchHint').innerHTML=`Tip: type a word here (${L.searchHint}) to look it up in the built-in dictionary of ${L.dictSize} words, then tap <b>+ Add</b> on the one you want.`;
+  $('searchHint').innerHTML=L.blank?'Tip: tap <b>+ Add</b> for a new term, or <b>Bulk add</b> below to paste many at once (term | definition, or a spreadsheet’s two columns).'
+    :`Tip: type a word here (${L.searchHint}) to look it up in the built-in dictionary of ${L.dictSize} words, then tap <b>+ Add</b> on the one you want.`;
+  $('q').placeholder=L.blank?'Search your terms and definitions':'Search your words and the dictionary';
+  $('fType').hidden=!!L.blank;
   $('sortLangOpt').textContent=L.sortLabel;
-  $('dictCredit').innerHTML='Dictionary: '+L.dictCredit;
+  $('dictCredit').innerHTML=L.dict?'Dictionary: '+L.dictCredit:'';
   $('dictSpellWrap').hidden=LANG!=='ja'&&LANG!=='zh';
   if(LANG==='zh')$('dictSpell').innerHTML='<option value="usual">Simplified (猫)</option><option value="trad">Traditional (貓)</option>';
-  $('fJpLabel').textContent=L.name;
+  $('fJpLabel').textContent=L.blank?'Term':L.name;
+  $('fMeanLabel').textContent=L.blank?'Definition':'Meaning';
+  $('fEdit').meaning.rows=L.blank?3:1;$('fEdit').meaning.placeholder=L.blank?'the definition, as long as you like':'cat';
+  $('fReadRow').hidden=!!L.blank;
+  $('editDictHint').dataset.blank=L.blank?'1':'';
   const f=$('fEdit');f.jp.placeholder=L.wordPlaceholder;f.reading.placeholder=L.readingPlaceholder;f.jp.lang=f.reading.lang=LANG;
   $('fReadLabel').textContent=L.readingLabel;
   $('bulkText').placeholder=L.bulkPlaceholder;$('bulkText').lang=LANG;
   $('studyKanaLabel').textContent=`Also include the ${L.lettersWord} used in these words`;
-  $('writeNote').textContent=L.handwriting?(LANG==='ko'?'Write it by hand, then compare with the correct letters and mark yourself.':'Write it by hand. Your strokes are checked automatically.')
+  $('writeNote').textContent=L.blank?'See the definition, type the term. Checked automatically (capitals don’t matter).':L.handwriting?(LANG==='ko'?'Write it by hand, then compare with the correct letters and mark yourself.':'Write it by hand. Your strokes are checked automatically.')
     :`Type it, including ${LANG==='fr'?'accents and the article (le, la, l’)':LANG==='es'?'accents and the article (el, la)':'umlauts, capitals and the article (der, die, das)'}. Checked automatically.`;
-  $('dirLangBtn').textContent=L.name;
+  $('dirLangBtn').textContent=L.blank?'Term':L.name;
+  $('studyDir').querySelector('[data-dir="en"]').textContent=L.blank?'Definition':'English';
   $('studyAudioLabel').textContent=`Play ${L.name} audio automatically`;
+  $('studyAudio').closest('label').hidden=!L.tts;
   $('typeIn').lang=LANG;
   $('accentKeys').innerHTML=(L.accents||[]).map(k=>`<button type="button" class="btn" data-k="${k}">${k}</button>`).join('');
   $('wTitle').lang=LANG;
@@ -1175,10 +1294,15 @@ try{
     t.hidden=false;
   }
 }catch{}
-document.body.dataset.state=CLOUD?'loading':'in';
+if(!CLOUD){
+  PROJECTS=localProjects();
+  if(!load('jn.projects',null))saveProjects(PROJECTS);
+  if(PROJECTS.length&&!PROJECTS.some(p=>p.id===PROJECT.id))switchProject(PROJECTS[0]);
+}
+document.body.dataset.state=CLOUD?'loading':PROJECTS.length?'in':'welcome';
 
 render();renderKana();
-{let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}showTab(['kana','words','study'].includes(t)?t:'kana')}
+{let t='kana';try{t=localStorage.getItem('jn.tab')||'kana'}catch{}if(!L.lettersTab&&t==='kana')t='words';showTab(['kana','words','study'].includes(t)?t:'kana')}
 </script>
 <script src="dictionary.js"></script>
 <script type="module" src="cloud.js"></script>

@@ -83,6 +83,10 @@ Anyone with the link can create an account (Google or email) and gets their own 
 ## Developer notes
 
 - `cloud.js` holds all sync code; `index.html` works without it (local-only mode).
+- **Projects:** each person has a list of projects (`users/{uid}/meta/projects`), each a language or Blank,
+  stored under `users/{uid}/projects/{id}/…`. Notebooks from before projects existed (Japanese at
+  `users/{uid}/words`, other languages at `users/{uid}/langs/{code}/…`) become projects in place on first
+  sign-in, so nothing moves. In local-only mode the list is `jn.projects` in the browser.
 - `languages.js` holds everything language-specific (Japanese, Chinese, Korean, French, Spanish, German): names, voices,
   letter charts, Korean romanization and accent-free matching. The language is picked in the profile
   sidebar; `?lang=fr` in the URL also works. Firestore keeps Japanese at `users/{uid}/words` and the

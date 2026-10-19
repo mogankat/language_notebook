@@ -1,9 +1,11 @@
 // Cloud sync: Firebase sign-in + Firestore storage, loaded only when firebase-config.js has a config.
-// Data layout (one private space per person; Japanese keeps the original paths):
-//   users/{uid}/words/{wordId}                 Japanese: one document per notebook entry
-//   users/{uid}/meta/chars                     Japanese: { status: { "か": "known", ... } }
-//   users/{uid}/langs/{fr|ko|de}/words/{id}    other languages, same shapes
-//   users/{uid}/langs/{fr|ko|de}/meta/chars
+// Data layout (one private space per person):
+//   users/{uid}/meta/projects                  { list: [{ id, type, name, created }] } — the person's projects
+//   users/{uid}/projects/{projectId}/words/{id}    a project's notebook entries
+//   users/{uid}/projects/{projectId}/meta/chars    its letter progress { status: { "か": "known", ... } }
+// Notebooks from before projects existed keep their original paths and become projects in place:
+//   users/{uid}/words, users/{uid}/meta/chars                 project "ja"
+//   users/{uid}/langs/{zh|ko|fr|es|de}/words, …/meta/chars    projects "zh" … "de"
 // Firestore's offline cache keeps everything usable without a connection and syncs when back online.
 const cfg = window.FIREBASE_CONFIG;
 if (cfg) boot().catch(err => { console.error(err); app.authMessage('Could not load sign-in: ' + err.message, true); });
@@ -24,10 +26,12 @@ async function boot() {
     F.connectFirestoreEmulator(db, '127.0.0.1', 8080);
   }
   let uid = null, unsubs = [];
-  const langPath = code => code === 'ja' ? ['users', uid] : ['users', uid, 'langs', code]; // app.lang = the language on screen
-  const wordsCol = (code = app.lang) => F.collection(db, ...langPath(code), 'words');
-  const wordRef = id => F.doc(db, ...langPath(app.lang), 'words', id);
-  const charsRef = () => F.doc(db, ...langPath(app.lang), 'meta', 'chars');
+  const projPath = pid => pid === 'ja' ? ['users', uid] : LANGS[pid] ? ['users', uid, 'langs', pid] : ['users', uid, 'projects', pid];
+  const wordsCol = (pid = app.project) => F.collection(db, ...projPath(pid), 'words'); // app.project = the project on screen
+  const wordRef = id => F.doc(db, ...projPath(app.project), 'words', id);
+  const charsRef = (pid = app.project) => F.doc(db, ...projPath(pid), 'meta', 'chars');
+  const projectsRef = () => F.doc(db, 'users', uid, 'meta', 'projects');
+  let projects = null;
 
   const MESSAGES = {
     'auth/invalid-credential': 'Wrong email or password.',
@@ -58,15 +62,27 @@ async function boot() {
 
   // index.html calls this after every change (see persist() there)
   window.cloud = {
-    // Word counts for the language list in the profile sidebar (from the server, or the offline cache)
-    async counts() {
+    // Word counts for the project list in the profile sidebar (from the server, or the offline cache)
+    async counts(ids = (projects || []).map(p => p.id)) {
       if (!uid) return null;
       const out = {};
-      await Promise.all(LANG_ORDER.map(async code => {
-        try { out[code] = (await F.getCountFromServer(wordsCol(code))).data().count; }
-        catch { try { out[code] = (await F.getDocsFromCache(wordsCol(code))).size; } catch {} }
+      await Promise.all(ids.map(async pid => {
+        try { out[pid] = (await F.getCountFromServer(wordsCol(pid))).data().count; }
+        catch { try { out[pid] = (await F.getDocsFromCache(wordsCol(pid))).size; } catch {} }
       }));
       return out;
+    },
+    saveProjects(list) { if (uid) return F.setDoc(projectsRef(), { list }).catch(showErr); },
+    // Delete every entry of a project (batches of 400), then its letter progress
+    async deleteProjectData(pid) {
+      if (!uid) return;
+      const snap = await F.getDocs(wordsCol(pid));
+      for (let i = 0; i < snap.docs.length; i += 400) {
+        const batch = F.writeBatch(db);
+        snap.docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+      await F.deleteDoc(charsRef(pid)).catch(() => {});
     },
     push(change) {
       if (!uid) return;
@@ -97,12 +113,21 @@ async function boot() {
     if (!user) { uid = null; app.signedOut(); return; }
     uid = user.uid;
     app.signedIn({ name: user.displayName || user.email, email: user.email });
-    let checkedMigration = false;
+    let checkedMigration = false, creatingList = false;
+    // The project list. The first time (no list yet), notebooks from before projects become projects.
+    unsubs.push(F.onSnapshot(projectsRef(), async snap => {
+      if (snap.exists()) { projects = snap.data().list || []; app.setProjects(projects); return; }
+      if (snap.metadata.fromCache || creatingList) return; // wait for the server before deciding there's no list
+      creatingList = true;
+      const counts = await window.cloud.counts(LANG_ORDER);
+      const list = LANG_ORDER.filter(c => counts?.[c] > 0).map(c => ({ id: c, type: c, name: LANGS[c].name, created: Date.now() }));
+      await F.setDoc(projectsRef(), { list }).catch(showErr);
+    }, showErr));
     unsubs.push(F.onSnapshot(wordsCol(), { includeMetadataChanges: true }, snap => {
       app.setWords(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       app.setSync(snap.metadata.hasPendingWrites ? 'saving' : snap.metadata.fromCache ? 'offline' : 'synced');
       // Wait for an answer from the server (not just the offline cache) before offering to copy local words
-      if (!checkedMigration && !snap.metadata.fromCache) { checkedMigration = true; if (app.lang === 'ja') offerMigration(user.uid); }
+      if (!checkedMigration && !snap.metadata.fromCache) { checkedMigration = true; if (app.project === 'ja') offerMigration(user.uid); }
     }, showErr));
     unsubs.push(F.onSnapshot(charsRef(), snap => app.setChars(snap.data()?.status || {}), showErr));
   });

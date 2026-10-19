@@ -1,5 +1,6 @@
-/* Languages: the page shows one language at a time, picked in the profile sidebar (saved per device).
-   Each language has its own notebook (words, tags, letter progress, study settings). */
+/* Projects and languages: the page shows one project at a time, picked in the profile sidebar
+   (saved per device). A project is either a language (with its dictionary, letters and audio) or
+   Blank (your own terms and definitions). Each project has its own words, tags, progress and settings. */
 
 const LANGS = {
   ja: {
@@ -70,12 +71,34 @@ const LANGS = {
   },
 };
 const LANG_ORDER = ['ja', 'zh', 'ko', 'fr', 'es', 'de'];
-let LANG = 'ja';
-try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('jn.lang') || 'ja'; } catch {}
-if (!LANGS[LANG]) LANG = 'ja';
-const L = LANGS[LANG];
-// Per-language storage keys; Japanese keeps the original keys so existing notebooks carry on
-const lkey = (k, code = LANG) => code === 'ja' ? `jn.${k}` : `jn.${code}.${k}`;
+
+// Blank projects: your own terms and definitions (no dictionary, letters or audio)
+const BLANK = {
+  name: 'Blank', blank: true, latin: true, tts: '', voice: /^$/, voiceName: '', handwriting: false, accents: [],
+  lettersTab: '', lettersWord: null, dict: '', readingLabel: '', wordPlaceholder: 'e.g. mitochondrion',
+  searchHint: '', sortLabel: 'A–Z (terms)',
+  bulkPlaceholder: 'mitochondrion | the part of a cell that makes energy\nosmosis | movement of water across a membrane | Unit 1',
+  samples: [['mitochondrion', '', 'the part of a cell that makes energy', 'word', 'Biology'],
+    ['osmosis', '', 'movement of water across a semi-permeable membrane', 'word', 'Biology'],
+    ['photosynthesis', '', 'how plants turn light into chemical energy', 'word', 'Biology']],
+};
+const typeInfo = type => type === 'blank' ? BLANK : LANGS[type];
+
+/* The project on screen: {id, type, name}. Projects made before projects existed keep their old
+   storage: id "ja" (the original notebook) and ids "zh", "ko", "fr", "es", "de" (one per language). */
+let PROJECT = { id: 'ja', type: 'ja', name: 'Japanese' };
+try {
+  const forced = new URLSearchParams(location.search).get('lang'); // ?lang=fr opens that language's original project
+  const cur = JSON.parse(localStorage.getItem('jn.current') || 'null');
+  const legacy = localStorage.getItem('jn.lang');
+  if (LANGS[forced]) PROJECT = { id: forced, type: forced, name: LANGS[forced].name };
+  else if (cur?.id && typeInfo(cur.type)) PROJECT = cur;
+  else if (LANGS[legacy]) PROJECT = { id: legacy, type: legacy, name: LANGS[legacy].name };
+} catch {}
+const LANG = PROJECT.type; // 'ja' … 'de', or 'blank'
+const L = typeInfo(LANG);
+// Per-project storage keys; the original notebooks keep their keys so nothing has to move
+const lkey = (k, id = PROJECT.id) => id === 'ja' ? `jn.${k}` : LANGS[id] ? `jn.${id}.${k}` : `jn.p.${id}.${k}`;
 
 /* Letter charts for the Letters / Hangul tab (Japanese kana live in index.html).
    Strict JSON between the markers: make-letter-audio.py reads it to record audio/<lang>/<id>.m4a.
