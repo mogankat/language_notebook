@@ -13,5 +13,8 @@ for rows in re.findall(r"parseRows\('([^']+)'\)", html):
 for kana, romaji in sorted(cells, key=lambda c: c[1]):
     path = os.path.join(out, romaji + '.m4a')
     if os.path.exists(path): continue
-    subprocess.run(['say', '-v', 'Kyoko', '-r', '150', '-o', path, '--file-format=m4af', '--data-format=aac', kana], check=True)
+    subprocess.run(['say', '-v', 'Kyoko', '-r', '150', '-o', path + '.aiff', kana], check=True)
+    # small AAC; afconvert also drops the padding `say` adds to its own .m4a files
+    subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '32000', path + '.aiff', path], check=True)
+    os.remove(path + '.aiff')
 print(f'{len(cells)} characters, files in audio/kana/')

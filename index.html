@@ -194,7 +194,6 @@ dialog textarea[name="meaning"]{resize:vertical}
 .accent-keys .btn{min-width:40px;padding:6px 10px;font-size:17px}
 .grid.letters .k b{font-size:24px}
 /* dictionary */
-.search-hint{margin:8px 0 0;font-size:13px}
 #editDictHint{margin:-4px 0 2px;font-size:13px}
 #editDictHint .linkbtn{font-size:13px;color:var(--accent)}
 #dictBox{margin-top:18px}
@@ -229,6 +228,10 @@ dialog textarea[name="meaning"]{resize:vertical}
 .type-opt input{width:auto;margin-top:4px}
 .type-opt small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .type-opt.disabled{opacity:.55;cursor:default}
+#studyTypes{display:flex;flex-wrap:wrap;gap:6px}
+#studyTypes .type-opt{flex:1 1 0;min-width:0;padding:8px;gap:6px;align-items:center;font-size:14px}
+#studyTypes .type-opt input{margin-top:0}
+#speakNote:empty{display:none}
 /* study */
 .study-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:14px;margin-bottom:8px}
 .progbar{height:4px;background:var(--chip);border-radius:2px;overflow:hidden}
@@ -275,7 +278,6 @@ dialog textarea[name="meaning"]{resize:vertical}
   <section id="signin">
     <div class="signin-card">
       <h2>Sign in to your notebook</h2>
-      <p class="hint">Create a free account to keep your own notebooks for Japanese, Chinese, Korean, French, Spanish and German, synced across all your devices.</p>
       <button type="button" class="btn primary big" onclick="app.onGoogle?.()">Continue with Google</button>
       <div class="or">or use email</div>
       <form id="emailForm">
@@ -291,7 +293,6 @@ dialog textarea[name="meaning"]{resize:vertical}
   <section id="welcome">
     <div class="signin-card">
       <h2>Create your first project</h2>
-      <p class="hint">Pick a language to get its built-in dictionary, letters and audio, or start a blank project for your own terms and definitions, like a university course.</p>
       <button type="button" class="btn primary big" onclick="openNewProject()">+ New project</button>
     </div>
   </section>
@@ -302,10 +303,9 @@ dialog textarea[name="meaning"]{resize:vertical}
   <section id="words">
     <div class="bar">
       <div class="search">
-        <input id="q" type="search" placeholder="Search your words and the dictionary" autocomplete="off">
+        <input id="q" type="search" placeholder="Search" autocomplete="off">
         <button class="btn primary" onclick="openEdit()">+ Add</button>
       </div>
-      <p class="hint search-hint" id="searchHint"></p>
       <div class="row">
         <select id="fType"><option value="">All types</option><option value="word">Words</option><option value="phrase">Phrases</option><option value="grammar">Grammar</option></select>
         <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="jp" id="sortLangOpt">A–Z</option><option value="en">English A–Z</option></select>
@@ -318,7 +318,7 @@ dialog textarea[name="meaning"]{resize:vertical}
       <div class="dict-head">
         <div class="section-title">From the dictionary</div>
         <div class="dict-opts">
-          <label class="dict-tag">Tag words I add <input id="dictTag" placeholder="e.g. Section 1 Unit 2" list="tagList" autocomplete="off"></label>
+          <label class="dict-tag">Tag words I add <input id="dictTag" list="tagList" autocomplete="off"></label>
           <label class="dict-tag" id="dictSpellWrap">Write as <select id="dictSpell"><option value="usual">Usual spelling (寿司)</option><option value="kana">Kana only (すし)</option></select></label>
         </div>
       </div>
@@ -327,7 +327,7 @@ dialog textarea[name="meaning"]{resize:vertical}
     </section>
     <div class="foot">
       <button class="btn" onclick="openStarter()" id="starterBtn">Add starter phrases</button>
-      <button class="btn" onclick="openBulk()">Bulk add from notebook</button>
+      <button class="btn" onclick="openBulk()">Add multiple entries</button>
       <button class="btn" onclick="exportData()">Export backup</button>
       <button class="btn" onclick="document.getElementById('importFile').click()">Import backup</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
@@ -337,18 +337,17 @@ dialog textarea[name="meaning"]{resize:vertical}
   <!-- STUDY -->
   <section id="study" hidden>
     <div id="studySetup">
-      <div class="section-title">Cards to study <span style="font-weight:400">· pick All or one or more tags</span></div>
+      <div class="section-title">Cards</div>
       <div class="row" id="studyTags" style="margin-top:0"></div>
       <label class="check"><input type="checkbox" id="studyKana"> <span id="studyKanaLabel">Also include the kana used in these words</span></label>
       <div class="section-title">Practise</div>
       <div class="type-list" id="studyTypes">
-        <label class="type-opt"><input type="checkbox" value="read"><span><b>Reading</b><small>See it, recall it, then mark yourself.</small></span></label>
-        <label class="type-opt"><input type="checkbox" value="write"><span><b>Writing</b><small id="writeNote">Write it by hand. Your strokes are checked automatically.</small></span></label>
+        <label class="type-opt"><input type="checkbox" value="read"><span><b>Reading</b></span></label>
+        <label class="type-opt"><input type="checkbox" value="write"><span><b>Writing</b></span></label>
         <label class="type-opt" id="speakOpt"><input type="checkbox" value="speak"><span><b>Speaking</b><small id="speakNote"></small></span></label>
       </div>
-      <p class="hint" style="margin-top:8px">Each card uses one of the ticked skills, picked at random.</p>
       <div id="studyDirWrap">
-      <div class="section-title">Reading cards show first</div>
+      <div class="section-title">Show first</div>
       <div class="seg" id="studyDir">
         <button type="button" class="btn" data-dir="jp" id="dirLangBtn">Japanese</button>
         <button type="button" class="btn" data-dir="en">English</button>
@@ -363,16 +362,16 @@ dialog textarea[name="meaning"]{resize:vertical}
       <div class="progbar"><i id="studyBar"></i></div>
       <div class="flash" id="flash"></div>
       <div id="studyType" hidden>
-        <input id="typeIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type it here">
+        <input id="typeIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" >
         <div class="accent-keys" id="accentKeys"></div>
       </div>
       <div class="seg" id="studyBtns"></div>
       <div id="studyPad" hidden></div>
-      <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space: show answer / check / speak / continue · ← Again · → Got it</p>
+      <p class="hint kbd-hint" style="text-align:center;margin-top:10px">Space · ← Again · → Got it</p>
     </div>
     <div id="studyDone" hidden>
       <div class="done-score" id="studyScore"></div>
-      <p class="hint" style="text-align:center">right on the first try</p>
+      <p class="hint" style="text-align:center">first try</p>
       <div class="seg" style="margin-top:20px;flex-wrap:wrap">
         <button class="btn primary big" id="studyRetry"></button>
         <button class="btn big" id="studyAgain">Start over</button>
@@ -390,7 +389,7 @@ dialog textarea[name="meaning"]{resize:vertical}
       </div>
       <span class="progress" id="progress"></span>
     </div>
-    <div class="legend"><span><i class="sw"></i>New</span><span><i class="sw" style="background:var(--learning)"></i>Learning</span><span><i class="sw" style="background:var(--known)"></i>Known</span><span id="legendTip">· tap a character for details</span></div>
+    <div class="legend"><span><i class="sw"></i>New</span><span><i class="sw" style="background:var(--learning)"></i>Learning</span><span><i class="sw" style="background:var(--known)"></i>Known</span></div>
     <div id="kanaGrids"></div>
   </section>
   </main>
@@ -417,10 +416,9 @@ dialog textarea[name="meaning"]{resize:vertical}
 <dialog id="dProject" class="wide">
   <form method="dialog" id="fProject">
     <h2>New project</h2>
-    <p class="hint">A language project comes with its dictionary, letters and audio. A blank project is for anything else: your own terms and definitions, e.g. for a university course.</p>
     <div class="type-list proj-types" id="projTypes"></div>
-    <label>Name<input name="name" required maxlength="60" placeholder="e.g. Japanese, or Biology 201"></label>
-    <label class="check" id="projStarterWrap"><input type="checkbox" name="starter" checked> Add starter phrases: greetings, how are you, directions and shopping</label>
+    <label>Name<input name="name" required maxlength="60" ></label>
+    <label class="check" id="projStarterWrap"><input type="checkbox" name="starter" checked> Add starter phrases</label>
     <div class="actions">
       <button type="button" class="btn" id="projCancel" onclick="dProject.close()">Cancel</button>
       <button class="btn primary" value="save">Create project</button>
@@ -432,7 +430,6 @@ dialog textarea[name="meaning"]{resize:vertical}
 <dialog id="dStarter">
   <form method="dialog" id="fStarter">
     <h2>Add starter phrases</h2>
-    <p class="hint">Common phrases for travel and everyday conversation. Each topic becomes a tag, so you can study it on its own. Phrases already in this project are skipped.</p>
     <div class="type-list" id="starterTopics"></div>
     <div class="actions">
       <button type="button" class="btn" onclick="dStarter.close()">Cancel</button>
@@ -456,15 +453,15 @@ dialog textarea[name="meaning"]{resize:vertical}
 <dialog id="dEdit">
   <form method="dialog" id="fEdit">
     <h2 id="editTitle">Add entry</h2>
-    <p class="hint" id="editDictHint">Don’t want to type it all? <button type="button" class="linkbtn" onclick="findInDictionary()">Find it in the dictionary</button></p>
-    <label><span id="fJpLabel">Japanese</span> *<input name="jp" required lang="ja"></label>
+    <p class="hint" id="editDictHint"><button type="button" class="linkbtn" onclick="findInDictionary()">Find in dictionary</button></p>
+    <label><span><span id="fJpLabel">Japanese</span> *</span><input name="jp" required lang="ja"></label>
     <div class="two" id="fReadRow">
       <label><span id="fReadLabel">Reading</span><input name="reading" lang="ja"></label>
       <label>Type<select name="type"><option value="word">Word</option><option value="phrase">Phrase</option><option value="grammar">Grammar</option></select></label>
     </div>
-    <label><span id="fMeanLabel">Meaning</span> *<textarea name="meaning" rows="1" required placeholder="cat"></textarea></label>
-    <label>Tags (comma separated)<input name="tags" placeholder="Unit 2, animals" list="tagList"></label>
-    <label>Notes<textarea name="notes" rows="2" placeholder="Example sentence, memory trick…"></textarea></label>
+    <label><span><span id="fMeanLabel">Meaning</span> *</span><textarea name="meaning" rows="1" required></textarea></label>
+    <label>Tags (comma separated)<input name="tags" list="tagList"></label>
+    <label>Notes<textarea name="notes" rows="2"></textarea></label>
     <div class="actions">
       <button type="button" class="btn danger left" id="btnDelete" onclick="deleteEntry()">Delete</button>
       <button type="button" class="btn" onclick="dEdit.close()">Cancel</button>
@@ -477,11 +474,10 @@ dialog textarea[name="meaning"]{resize:vertical}
 <!-- Bulk dialog -->
 <dialog id="dBulk">
   <form method="dialog" id="fBulk">
-    <h2>Bulk add</h2>
-    <p class="hint">One entry per line, fields separated by <code>|</code>:<br>
-      <code>word | meaning</code> or <code>word | reading | meaning</code> or <code>word | reading | meaning | tags</code></p>
+    <h2>Add multiple entries</h2>
+    <p class="hint" id="bulkFormat"></p>
     <textarea name="text" rows="8" lang="ja" id="bulkText"></textarea>
-    <label>Tag all of these with (optional)<input name="tag" placeholder="Unit 3" list="tagList"></label>
+    <label>Tag all<input name="tag" list="tagList"></label>
     <div class="actions">
       <button type="button" class="btn" onclick="dBulk.close()">Cancel</button>
       <button class="btn primary" value="save">Add entries</button>
@@ -604,7 +600,7 @@ function render(){
   rows.sort(cmp);
   $('count').textContent=`${rows.length} of ${words.length}`;
   if(!words.length){
-    $('list').innerHTML=`<div class="empty"><p>This project is empty.</p>${L.dict?'<p>Search above to find words in the dictionary, then tap <b>+ Add</b>.</p>':''}<button class="btn primary" onclick="openEdit()">Add your first ${L.blank?'term':'word'}</button><button class="btn" onclick="openBulk()">Bulk add from notebook</button>${L.blank?'<button class="btn" onclick="addSamples()">Load a few samples</button>':'<button class="btn" onclick="openStarter()">Add starter phrases</button>'}</div>`;
+    $('list').innerHTML=`<div class="empty"><p>This project is empty.</p><button class="btn primary" onclick="openEdit()">Add your first ${L.blank?'term':'word'}</button><button class="btn" onclick="openBulk()">Add multiple entries</button>${L.blank?'<button class="btn" onclick="addSamples()">Load a few samples</button>':'<button class="btn" onclick="openStarter()">Add starter phrases</button>'}</div>`;
     return;
   }
   $('list').innerHTML=rows.length?rows.map(w=>`
@@ -617,8 +613,8 @@ function render(){
     </div>`).join(''):`<div class="empty">No matches.</div>`;
 }
 $('q').addEventListener('input',render);
-const showSearchHint=()=>{$('searchHint').hidden=!!$('q').value.trim()};
-$('q').addEventListener('input',showSearchHint);
+const showSearchHint=()=>{};
+
 // From the Add window: search the dictionary for whatever was typed there
 function findInDictionary(){
   const f=$('fEdit'),text=(f.jp.value||f.meaning.value||f.reading.value).trim();
@@ -835,7 +831,18 @@ function sayKana(ch){
   kanaAudio.play().catch(()=>speak(ch));
 }
 // Prefer a kana reading (more reliable than kanji); romaji readings aren't speakable as Japanese.
-const sayWord=w=>w&&L.tts&&speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
+// Starter phrases have recordings, so they play even where the browser has no voice for the language
+const PHRASE_FILE={};STARTER.forEach((t,ti)=>t.rows.forEach((r,ri)=>{if(r[LANG])PHRASE_FILE[r[LANG][0]]=`audio/phrases/${LANG}/${ti}-${ri}.m4a`}));
+function sayWord(w){
+  if(!w||!L.tts)return;
+  const file=PHRASE_FILE[w.jp];
+  if(!file)return sayText(w);
+  try{speechSynthesis.cancel()}catch{}
+  if(kanaAudio)kanaAudio.pause();
+  kanaAudio=new Audio(file);
+  kanaAudio.play().catch(()=>sayText(w));
+}
+const sayText=w=>speak(LANG==='ja'&&/[\u3041-\u30ff]/.test(w.reading||'')?w.reading:w.jp);
 
 /* ---------- study (flashcards) ----------
    A card is a word, or a kana used in the chosen words, practised one way picked at random from the
@@ -889,8 +896,8 @@ function renderStudySetup(){
   $('studyTypes').querySelectorAll('input').forEach(i=>{i.checked=study.skills.has(i.value)});
   const sp=$('speakOpt').querySelector('input');sp.disabled=!canSpeak;if(!canSpeak)sp.checked=false;
   $('speakOpt').classList.toggle('disabled',!canSpeak);
-  $('speakNote').textContent=canSpeak?'Say it out loud. Your browser’s speech recognition checks it (it sends the audio to Apple or Google).'
-    :L.blank?'Not available for blank projects, which have no language to listen for.':isBrave?'Not available in Brave, which blocks speech recognition. Use Safari or Chrome.':'Not available in this browser. Use Safari or Chrome.';
+  $('speakNote').textContent=canSpeak?'':isBrave?'Not available in Brave':'Not available in this browser';
+  $('speakOpt').hidden=!!L.blank;
   $('studyKana').checked=study.kana;
   $('studyDirWrap').hidden=!study.skills.has('read');
   $('studyDir').querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('on',b.dataset.dir===study.dir));
@@ -935,7 +942,8 @@ function drawCard(){
   const c=study.card,w=curWord(),back=study.stage==='back';
   const say=L.tts?`<button type="button" class="say" data-say="1" title="Play pronunciation" aria-label="Play pronunciation">${ICON.speaker}</button>`:'';
   // long terms and definitions (course notes) get a smaller font
-  const label=t=>`<div class="f-label">${t}</div>`, jpBig=t=>`<div class="f-jp${String(t).length>14?' long':''}" lang="${LANG}">${esc(t)}</div>`, en=t=>`<div class="f-en${String(t).length>50?' long':''}">${esc(t)}</div>`;
+  const label=t=>`<div class="f-label">${t.split(' · ')[0]}</div>`, // just Reading / Writing / Speaking
+   jpBig=t=>`<div class="f-jp${String(t).length>14?' long':''}" lang="${LANG}">${esc(t)}</div>`, en=t=>`<div class="f-en${String(t).length>50?' long':''}">${esc(t)}</div>`;
   const read=w?.reading?`<div class="f-read" lang="${LANG}">${esc(w.reading)}</div>`:'';
   const notes=w?.notes?`<div class="f-notes">${esc(w.notes)}</div>`:'';
   const line=x=>`<div class="f-row">${x}</div>`;
@@ -949,7 +957,6 @@ function drawCard(){
       h=label(L.blank?(jp?'Term · what’s the definition?':'Definition · what’s the term?'):jp?'Reading · what does it mean?':`Reading · say or think the ${L.name}`)+(jp?jpBig(w.jp)+say:en(w.meaning));
       if(back)h+='<hr>'+(jp?read+en(w.meaning):jpBig(w.jp)+read+say)+notes;
     }
-    if(!back)h+='<div class="hint">Tap or press Space to show the answer</div>';
   }
   if(c.skill==='write'){
     if(c.kind==='kana')h=label(`Writing · write this ${LANG==='ko'?'Hangul letter':isKatakana(c.ch)?'katakana':'hiragana'}`)+en(kanaRomaji(c.ch))+line(say);
@@ -958,7 +965,7 @@ function drawCard(){
       h+='<hr>'+(c.kind==='kana'?jpBig(c.ch):jpBig(w.jp)+read);
       if(!L.handwriting&&c.kind==='word'&&!study.gaveUp)h+=`<div class="hint">You typed: <span lang="${LANG}">${esc($('typeIn').value.trim()||'(nothing)')}</span></div>`;
       h+=study.result===true?verdict(true,'Correct'):study.result===false?verdict(false,study.gaveUp?'Here’s how it’s written':study.typedNote||(writableChars(c.kind==='kana'?c.ch:w.jp).length>1?'Not quite: tap a red box above the pad to see why':'Not quite: see the note under the pad'))
-        :`<div class="hint">${LANG==='ko'?'Hangul writing can’t be checked automatically yet.':'Couldn’t check automatically.'} Compare with the red letters and mark it yourself.</div>`;
+        :'<div class="hint">Compare with the red letters and mark it yourself.</div>';
     }else if(study.note)h+=`<div class="hint">${study.note}</div>`;
   }
   if(c.skill==='speak'){
@@ -1193,7 +1200,7 @@ function openNewProject(){
   closeDrawer();
   const f=$('fProject');f.reset();
   $('projTypes').innerHTML=[...LANG_ORDER,'blank'].map((t,i)=>`<label class="type-opt"><input type="radio" name="type" value="${t}"${i?'':' checked'}>
-    <span><b>${t==='blank'?'Blank':`${LANGS[t].native} · ${LANGS[t].name}`}</b><small>${t==='blank'?'Your own terms and definitions, with flashcards. No dictionary.':`Built-in dictionary of ${LANGS[t].dictSize} words, ${LANGS[t].lettersTab.toLowerCase()} and audio.`}</small></span></label>`).join('');
+    <span><b>${t==='blank'?'Blank':`${LANGS[t].native} · ${LANGS[t].name}`}</b>${t==='blank'?'<small>Your own terms and definitions</small>':''}</span></label>`).join('');
   f.name.value=LANGS.ja.name;$('projStarterWrap').hidden=false;
   $('projCancel').hidden=!(PROJECTS||[]).length; // the first project can't be skipped
   $('dProject').showModal();
@@ -1236,14 +1243,13 @@ function openStarter(){
   const have=new Set(words.map(w=>w.jp+'|'+w.meaning));
   $('starterTopics').innerHTML=STARTER.map(t=>{
     const all=starterWords(LANG,[t.tag]),fresh=all.filter(w=>!have.has(w.jp+'|'+w.meaning)).length;
-    const examples=all.slice(0,3).map(w=>w.meaning).join(', ');
-    return `<label class="type-opt"><input type="checkbox" value="${esc(t.tag)}"${fresh?' checked':' disabled'}><span><b>${esc(t.tag)}</b><small>${fresh?`${fresh} phrase${fresh===1?'':'s'}`:'Already added'} · ${esc(examples)}…</small></span></label>`;
+    return `<label class="type-opt"><input type="checkbox" value="${esc(t.tag)}"${fresh?' checked':' disabled'}><span><b>${esc(t.tag)}</b><small>${fresh?`${fresh} phrase${fresh===1?'':'s'}`:'Already added'}</small></span></label>`;
   }).join('');
   $('dStarter').showModal();
 }
 function addStarter(tags){
   const n=mergeData({words:starterWords(LANG,tags)}); // skips any already in the project
-  const t=$('toast');t.innerHTML=`Added ${n} starter phrase${n===1?'':'s'}. Tap a tag above to see one topic, or study them on the Study tab. <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;
+  const t=$('toast');t.innerHTML=`Added ${n} phrase${n===1?'':'s'}. <button class="btn" onclick="this.parentNode.hidden=true">OK</button>`;t.hidden=false;
   showTab('words');
 }
 $('fStarter').addEventListener('submit',e=>{
@@ -1294,11 +1300,8 @@ function applyLanguage(){
   $('langBadge').textContent=PROJECT.name;
   $('tabKana').textContent=L.lettersTab;$('tabKana').hidden=!L.lettersTab; // blank projects have no letters tab
   $('scriptTabs').hidden=LANG!=='ja';
-  $('legendTip').textContent=LANG==='ja'?'· tap a character for details':LANG==='zh'?'· tap one to hear it':'· tap a letter for details';
   $('studyKana').closest('label').hidden=!L.lettersWord;
-  $('searchHint').innerHTML=L.blank?'Tip: tap <b>+ Add</b> for a new term, or <b>Bulk add</b> below to paste many at once (term | definition, or a spreadsheet’s two columns).'
-    :`Tip: type a word here (${L.searchHint}) to look it up in the built-in dictionary of ${L.dictSize} words, then tap <b>+ Add</b> on the one you want.`;
-  $('q').placeholder=L.blank?'Search your terms and definitions':'Search your words and the dictionary';
+  $('q').placeholder=L.blank?'Search':'Search words and dictionary';
   $('fType').hidden=!!L.blank;
   $('sortLangOpt').textContent=L.sortLabel;
   $('dictCredit').innerHTML=L.dict?'Dictionary: '+L.dictCredit:'';
@@ -1306,18 +1309,16 @@ function applyLanguage(){
   if(LANG==='zh')$('dictSpell').innerHTML='<option value="usual">Simplified (猫)</option><option value="trad">Traditional (貓)</option>';
   $('fJpLabel').textContent=L.blank?'Term':L.name;
   $('fMeanLabel').textContent=L.blank?'Definition':'Meaning';
-  $('fEdit').meaning.rows=L.blank?3:1;$('fEdit').meaning.placeholder=L.blank?'the definition, as long as you like':'cat';
+  $('fEdit').meaning.rows=L.blank?3:1;
   $('fReadRow').hidden=!!L.blank;
   $('editDictHint').dataset.blank=L.blank?'1':'';
-  const f=$('fEdit');f.jp.placeholder=L.wordPlaceholder;f.reading.placeholder=L.readingPlaceholder;f.jp.lang=f.reading.lang=LANG;
+  const f=$('fEdit');f.jp.lang=f.reading.lang=LANG;
   $('fReadLabel').textContent=L.readingLabel;
-  $('bulkText').placeholder=L.bulkPlaceholder;$('bulkText').lang=LANG;
-  $('studyKanaLabel').textContent=`Also include the ${L.lettersWord} used in these words`;
-  $('writeNote').textContent=L.blank?'See the definition, type the term. Checked automatically (capitals don’t matter).':L.handwriting?(LANG==='ko'?'Write it by hand, then compare with the correct letters and mark yourself.':'Write it by hand. Your strokes are checked automatically.')
-    :`Type it, including ${LANG==='fr'?'accents and the article (le, la, l’)':LANG==='es'?'accents and the article (el, la)':'umlauts, capitals and the article (der, die, das)'}. Checked automatically.`;
+  $('bulkFormat').textContent=L.blank?'term | definition | tags':'word | reading | meaning | tags';$('bulkText').lang=LANG;
+  $('studyKanaLabel').textContent=`Include ${LANG==='ja'?'kana':LANG==='ko'?'Hangul letters':'special letters'}`;
   $('dirLangBtn').textContent=L.blank?'Term':L.name;
   $('studyDir').querySelector('[data-dir="en"]').textContent=L.blank?'Definition':'English';
-  $('studyAudioLabel').textContent=`Play ${L.name} audio automatically`;
+  $('studyAudioLabel').textContent='Auto-play audio';
   $('studyAudio').closest('label').hidden=!L.tts;
   $('typeIn').lang=LANG;
   $('accentKeys').innerHTML=(L.accents||[]).map(k=>`<button type="button" class="btn" data-k="${k}">${k}</button>`).join('');

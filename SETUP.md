@@ -92,6 +92,7 @@ Anyone with the link can create an account (Google or email) and gets their own 
   sidebar; `?lang=fr` in the URL also works. Firestore keeps Japanese at `users/{uid}/words` and the
   others at `users/{uid}/langs/{zh|ko|fr|es|de}/…` (the existing rules already cover both).
 - `make-kana-audio.py` regenerates `audio/kana/` with the macOS Kyoko voice;
+  `make-phrase-audio.py` records the starter phrases in `phrases.js` to `audio/phrases/<lang>/`;
   `make-letter-audio.py` regenerates `audio/fr|es|de|ko|zh/` (Thomas, Paulina, Anna, Yuna, Tingting) from the table in `languages.js`.
 - `dict/zh.json` comes from CC-CEDICT ranked by FrequencyWords: download
   `https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz` (gunzip) and

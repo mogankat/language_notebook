@@ -16,7 +16,9 @@ for lang, groups in letters.items():
         for it in group['items']:
             path = os.path.join(out, it['id'] + '.m4a')
             if not os.path.exists(path):
-                subprocess.run(['say', '-v', VOICES[lang], '-r', '150', '-o', path,
-                                '--file-format=m4af', '--data-format=aac', it['say']], check=True)
+                subprocess.run(['say', '-v', VOICES[lang], '-r', '150', '-o', path + '.aiff', it['say']], check=True)
+                # small AAC; afconvert also drops the padding `say` adds to its own .m4a files
+                subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '32000', path + '.aiff', path], check=True)
+                os.remove(path + '.aiff')
             n += 1
     print(f'{lang}: {n} letters, files in audio/{lang}/')
